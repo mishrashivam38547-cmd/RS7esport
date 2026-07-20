@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RS7_ESPORT - Deposits & Withdrawals Management</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans p-4 max-w-4xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <header class="flex justify-between items-center bg-slate-900 border border-slate-800 p-5 rounded-3xl">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 font-bold">
+                DW
+            </div>
+            <div>
+                <h1 class="text-sm font-black text-white">Deposits & Withdrawals Portal</h1>
+                <p class="text-[10px] text-slate-400">Manage user wallet fund requests securely</p>
+            </div>
+        </div>
+        <a href="admin.html" class="text-xs text-slate-400 bg-slate-800 hover:text-white px-3 py-2 rounded-xl border border-slate-700 transition">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Back to Dashboard
+        </a>
+    </header>
+
+    <!-- SECTION: Pending Add Money Requests (Deposits) -->
+    <section class="bg-slate-900 border border-slate-800 p-5 rounded-3xl space-y-4 shadow-lg">
+        <h2 class="text-sm font-bold text-amber-400"><i class="fa-solid fa-money-bill-transfer mr-2"></i>Pending Deposit Requests</h2>
+        <div id="deposits-container" class="space-y-3">
+            <p class="text-xs text-slate-500">Loading pending deposits...</p>
+        </div>
+    </section>
+
+    <!-- SECTION: Pending Withdrawal Requests -->
+    <section class="bg-slate-900 border border-slate-800 p-5 rounded-3xl space-y-4 shadow-lg">
+        <h2 class="text-sm font-bold text-indigo-400"><i class="fa-solid fa-wallet mr-2"></i>Pending Withdrawal Requests</h2>
+        <div id="withdrawals-container" class="space-y-3">
+            <p class="text-xs text-slate-500">Loading pending withdrawals...</p>
+        </div>
+    </section>
+
+    <!-- Firebase Script Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDyTfxnBHJvWfq7QEoMszl8OFrwY_rK59Q",
+            authDomain: "rs7esport-7a6cb.firebaseapp.com",
+            projectId: "rs7esport-7a6cb",
+            storageBucket: "rs7esport-7a6cb.firebasestorage.app",
+            messagingSenderId: "260824306083",
+            appId: "1:260824306083:web:86533606cc8ea4bce78a16"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Load Pending Deposits
+        async function loadDeposits() {
+            const container = document.getElementById('deposits-container');
+            if(!container) return;
+            container.innerHTML = '<p class="text-xs text-slate-500">Loading...</p>';
+            
+            try {
+                const querySnapshot = await getDocs(collection(db, "deposits"));
+                container.innerHTML = '';
+                let count = 0;
+
+                querySnapshot.forEach((resDoc) => {
+                    const data = resDoc.data();
+                    if(data.status === "Pending") {
+                        count++;
+                        container.innerHTML += `
+                            <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                                <div class="space-y-1">
+                                    <p class="text-xs text-white"><b>Email:</b> ${data.email || 'N/A'}</p>
+                                    <p class="text-xs text-emerald-400 font-mono"><b>UTR ID:</b> ${data.utr || 'N/A'}</p>
+                                    <a href="${data.screenshotUrl}" target="_blank" class="text-[10px] text-blue-400 underline block">View Payment Screenshot</a>
+                                </div>
+                                <button onclick="approveDeposit('${resDoc.id}', '${data.uid}')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition">
+                                    Approve & Add Balance
+                                </button>
+                            </div>
+                        `;
+                    }
+                });
+
+                if(count === 0) container.innerHTML = '<p class="text-xs text-slate-500">No pending deposits found.</p>';
+            } catch(e) {
+                console.error("Error loading deposits:", e);
+            }
+        }
+
+        // Approve Deposit and Automatically Add Balance to User
+        window.approveDeposit = async function(depositId, userId) {
+            const amountStr = prompt("Enter amount to add for this UTR (e.g. 100):");
+            if(!amountStr) return;
+            const amount = parseFloat(amountStr);
+
+            if(isNaN(amount) || amount <= 0) {
+                alert("Please enter a valid amount.");
+                return;
+            }
+
+            try {
+                const userRef = doc(db, "users", userId);
+                const userSnap = await getDoc(userRef);
+                
+                if(userSnap.exists()) {
+                    const currentBal = userSnap.data().balance || 0;
+                    await updateDoc(userRef, { balance: currentBal + amount });
+                }
+
+                await updateDoc(doc(db, "deposits", depositId), { status: "Approved" });
+
+                alert("Deposit approved and balance added successfully!");
+                loadDeposits();
+            } catch(e) {
+                alert("Error approving deposit: " + e.message);
+            }
+        };
+
+        // Load Pending Withdrawals
+        async function loadWithdrawals() {
+            const container = document.getElementById('withdrawals-container');
+            if(!container) return;
+            container.innerHTML = '<p class="text-xs text-slate-500">Loading...</p>';
+            
+            try {
+                const querySnapshot = await getDocs(collection(db, "withdrawals"));
+                container.innerHTML = '';
+                let count = 0;
+
+                querySnapshot.forEach((resDoc) => {
+                    const data = resDoc.data();
+                    if(data.status === "Pending") {
+                        count++;
+                        container.innerHTML += `
+                            <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex justify-between items-center">
+                                <div>
+                                    <p class="text-xs text-white"><b>UID:</b> ${data.uid}</p>
+                                    <p class="text-xs text-indigo-400 font-bold"><b>Requested Amount:</b> ₹${data.amount}</p>
+                                </div>
+                                <button onclick="markWithdrawalDone('${resDoc.id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">
+                                    Mark Paid / Complete
+                                </button>
+                            </div>
+                        `;
+                    }
+                });
+
+                if(count === 0) container.innerHTML = '<p class="text-xs text-slate-500">No pending withdrawal requests.</p>';
+            } catch(e) {
+                console.error("Error loading withdrawals:", e);
+            }
+        }
+
+        window.markWithdrawalDone = async function(withdrawId) {
+            try {
+                await updateDoc(doc(db, "withdrawals", withdrawId), { status: "Completed" });
+                alert("Withdrawal marked as completed!");
+                loadWithdrawals();
+            } catch(e) {
+                alert("Error updating withdrawal: " + e.message);
+            }
+        };
+
+        // Initialize on load
+        loadDeposits();
+        loadWithdrawals();
+    </script>
+</body>
+</html>
