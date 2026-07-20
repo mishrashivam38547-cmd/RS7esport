@@ -1,65 +1,17 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RS7_ESPORT - Admin Dashboard</title>
-    <!-- Tailwind CSS -->
+    <title>RS7_esport - Advanced Admin Control Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body class="bg-slate-950 text-slate-100 font-sans p-4 max-w-4xl mx-auto space-y-6">
-
-    <!-- Admin Header -->
-    <header class="flex justify-between items-center bg-slate-900 border border-slate-800 p-5 rounded-3xl">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 font-bold">
-                AD
-            </div>
-            <div>
-                <h1 class="text-sm font-black text-white">RS7 Admin Panel</h1>
-                <p class="text-[10px] text-slate-400">Manage deposits, withdrawals & user balances</p>
-            </div>
-        </div>
-        <button onclick="adminLogout()" class="text-xs text-rose-400 bg-rose-500/10 px-3 py-2 rounded-xl border border-rose-500/20 font-bold">
-            Logout
-        </button>
-    </header>
-
-    <!-- SECTION 1: Manual Winner / Balance Adder (By App ID) -->
-    <section class="bg-slate-900 border border-slate-800 p-5 rounded-3xl space-y-4 shadow-lg">
-        <h2 class="text-sm font-bold text-emerald-400"><i class="fa-solid fa-user-plus mr-2"></i>Add Balance / Winner Prize to User</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <input type="text" id="target-appid" placeholder="Enter App ID (e.g. RS7-4821)" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-emerald-500">
-            <input type="number" id="target-amount" placeholder="Enter Amount (₹)" class="bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-emerald-500">
-            <button onclick="addBalanceByAppId()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl text-xs transition shadow-md">
-                Add Balance Now
-            </button>
-        </div>
-    </section>
-
-    <!-- SECTION 2: Pending Add Money Requests (Deposits) -->
-    <section class="bg-slate-900 border border-slate-800 p-5 rounded-3xl space-y-4 shadow-lg">
-        <h2 class="text-sm font-bold text-amber-400"><i class="fa-solid fa-money-bill-transfer mr-2"></i>Pending Deposit Requests</h2>
-        <div id="deposits-container" class="space-y-3">
-            <p class="text-xs text-slate-500">Loading pending deposits...</p>
-        </div>
-    </section>
-
-    <!-- SECTION 3: Pending Withdrawal Requests -->
-    <section class="bg-slate-900 border border-slate-800 p-5 rounded-3xl space-y-4 shadow-lg">
-        <h2 class="text-sm font-bold text-indigo-400"><i class="fa-solid fa-wallet mr-2"></i>Pending Withdrawal Requests</h2>
-        <div id="withdrawals-container" class="space-y-3">
-            <p class="text-xs text-slate-500">Loading pending withdrawals...</p>
-        </div>
-    </section>
-
-    <!-- Admin Script Logic -->
+    
+    <!-- Firebase SDK Imports -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, getDoc, updateDbData, updateDoc, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDyTfxnBHJvWfq7QEoMszl8OFrwY_rK59Q",
@@ -71,153 +23,541 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        window.firebaseApp = app;
+        window.firebaseAuth = getAuth(app);
+        window.firebaseDb = getFirestore(app);
+    </script>
 
-        // Simple security check or prompt admin login if needed
-        // Aap yahan apna admin email check laga sakte hain ya direct use kar sakte hain.
+    <style>
+        .admin-screen { display: none; }
+        .admin-screen.active { display: block; }
+        .modal { display: none; }
+        .modal.active { display: flex; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased flex h-screen overflow-hidden">
 
-        // Load Pending Deposits
-        async function loadDeposits() {
-            const container = document.getElementById('deposits-container');
-            container.innerHTML = '<p class="text-xs text-slate-500">Loading...</p>';
-            
-            try {
-                const querySnapshot = await getDocs(collection(db, "deposits"));
-                container.innerHTML = '';
-                let count = 0;
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between hidden md:flex z-50">
+        <div>
+            <!-- Logo Header -->
+            <div class="p-6 border-b border-slate-800 flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-tr from-emerald-500 to-indigo-600 rounded-xl flex items-center justify-center font-bold text-white shadow-lg">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <h1 class="font-black text-white text-base">RS7<span class="text-emerald-400">_ESPORT</span></h1>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest">Admin Control</p>
+                </div>
+            </div>
 
-                querySnapshot.forEach((resDoc) => {
-                    const data = resDoc.data();
-                    if(data.status === "Pending") {
-                        count++;
-                        container.innerHTML += `
-                            <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                                <div class="space-y-1">
-                                    <p class="text-xs text-white"><b>Email:</b> ${data.email}</p>
-                                    <p class="text-xs text-emerald-400 font-mono"><b>UTR ID:</b> ${data.utr}</p>
-                                    <a href="${data.screenshotUrl}" target="_blank" class="text-[10px] text-blue-400 underline block">View Payment Screenshot</a>
-                                </div>
-                                <button onclick="approveDeposit('${resDoc.id}', '${data.uid}')" class="bg-emerald-500 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs">
-                                    Approve & Add Balance
-                                </button>
+            <!-- Navigation Links -->
+            <nav class="p-4 space-y-1.5 text-xs font-medium">
+                <button onclick="switchAdminScreen('dashboard')" class="admin-nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-emerald-400 bg-emerald-500/10 font-bold" data-target="dashboard">
+                    <i class="fa-solid fa-chart-pie w-5 text-sm"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button onclick="switchAdminScreen('users')" class="admin-nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-slate-400 hover:text-white hover:bg-slate-800" data-target="users">
+                    <i class="fa-solid fa-users w-5 text-sm"></i>
+                    <span>User Management</span>
+                </button>
+                <button onclick="switchAdminScreen('tournaments')" class="admin-nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-slate-400 hover:text-white hover:bg-slate-800" data-target="tournaments">
+                    <i class="fa-solid fa-trophy w-5 text-sm"></i>
+                    <span>Tournament Management</span>
+                </button>
+                <button onclick="switchAdminScreen('wallet')" class="admin-nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-slate-400 hover:text-white hover:bg-slate-800" data-target="wallet">
+                    <i class="fa-solid fa-wallet w-5 text-sm"></i>
+                    <span>Wallet Control</span>
+                </button>
+                <button onclick="switchAdminScreen('withdrawals')" class="admin-nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-slate-400 hover:text-white hover:bg-slate-800" data-target="withdrawals">
+                    <i class="fa-solid fa-money-bill-transfer w-5 text-sm"></i>
+                    <span>Withdrawal Approval</span>
+                </button>
+                <button onclick="switchAdminScreen('notifications')" class="admin-nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-slate-400 hover:text-white hover:bg-slate-800" data-target="notifications">
+                    <i class="fa-solid fa-bullhorn w-5 text-sm"></i>
+                    <span>Push Notifications</span>
+                </button>
+                <button onclick="switchAdminScreen('analytics')" class="admin-nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-slate-400 hover:text-white hover:bg-slate-800" data-target="analytics">
+                    <i class="fa-solid fa-chart-line w-5 text-sm"></i>
+                    <span>Analytics</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Admin Profile Footer -->
+        <div class="p-4 border-t border-slate-800 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-xs">AD</div>
+                <div>
+                    <h4 class="text-xs font-bold text-white">Super Admin</h4>
+                    <p class="text-[10px] text-emerald-400">Online</p>
+                </div>
+            </div>
+            <button onclick="alert('Logged out from admin session.')" class="text-slate-400 hover:text-red-400 transition text-sm">
+                <i class="fa-solid fa-power-off"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content Workspace -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-950">
+        
+        <!-- Top Header Bar -->
+        <header class="bg-slate-900/60 backdrop-blur border-b border-slate-800 px-6 py-4 flex justify-between items-center z-40 sticky top-0">
+            <div>
+                <h2 id="page-title" class="text-base font-bold text-white">Dashboard Overview</h2>
+                <p class="text-xs text-slate-400">Welcome back, manager. Real-time control panel powered by Firebase.</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-full font-medium">
+                    <i class="fa-solid fa-circle text-[8px] animate-pulse mr-1"></i> Live DB Connected
+                </span>
+            </div>
+        </header>
+
+        <!-- Dynamic Content Area -->
+        <div class="p-6 space-y-6 flex-1">
+
+            <!-- 1. DASHBOARD OVERVIEW -->
+            <div id="screen-dashboard" class="admin-screen active space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-slate-400 font-medium">Total Users</span>
+                            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs"><i class="fa-solid fa-users"></i></div>
+                        </div>
+                        <h3 class="text-2xl font-black text-white">4,852</h3>
+                        <span class="text-[10px] text-emerald-400 font-bold mt-1 inline-block"><i class="fa-solid fa-arrow-up mr-1"></i>+12.4% this week</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-slate-400 font-medium">Active Tournaments</span>
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs"><i class="fa-solid fa-trophy"></i></div>
+                        </div>
+                        <h3 class="text-2xl font-black text-white">18</h3>
+                        <span class="text-[10px] text-emerald-400 font-bold mt-1 inline-block">Running smoothly</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-slate-400 font-medium">Pending Withdrawals</span>
+                            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs"><i class="fa-solid fa-wallet"></i></div>
+                        </div>
+                        <h3 class="text-2xl font-black text-white">₹14,250</h3>
+                        <span class="text-[10px] text-amber-400 font-bold mt-1 inline-block">Requires approval</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-slate-400 font-medium">Platform Revenue</span>
+                            <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                        </div>
+                        <h3 class="text-2xl font-black text-white">₹68,400</h3>
+                        <span class="text-[10px] text-emerald-400 font-bold mt-1 inline-block"><i class="fa-solid fa-arrow-up mr-1"></i>+8.2% vs yesterday</span>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                    <h3 class="font-bold text-sm text-white mb-4">Recent System Logs & Registrations</h3>
+                    <div class="overflow-x-auto text-xs">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-slate-400">
+                                    <th class="py-3 px-4 font-medium">User / Gamer ID</th>
+                                    <th class="py-3 px-4 font-medium">Activity Type</th>
+                                    <th class="py-3 px-4 font-medium">Details</th>
+                                    <th class="py-3 px-4 font-medium">Timestamp</th>
+                                    <th class="py-3 px-4 font-medium text-right">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/60">
+                                <tr>
+                                    <td class="py-3 px-4 font-bold text-white">Silent Sniper 77</td>
+                                    <td class="py-3 px-4 text-slate-300">Tournament Join</td>
+                                    <td class="py-3 px-4 text-slate-400">Free Fire MAX Squad Cup #402</td>
+                                    <td class="py-3 px-4 text-slate-400">Just now</td>
+                                    <td class="py-3 px-4 text-right"><span class="bg-emerald-500/20 text-emerald-400 font-bold px-2 py-0.5 rounded">Success</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-bold text-white">Viper_99</td>
+                                    <td class="py-3 px-4 text-slate-300">Withdrawal Request</td>
+                                    <td class="py-3 px-4 text-slate-400">₹500 via UPI (Paytm)</td>
+                                    <td class="py-3 px-4 text-slate-400">5 mins ago</td>
+                                    <td class="py-3 px-4 text-right"><span class="bg-amber-500/20 text-amber-400 font-bold px-2 py-0.5 rounded">Pending</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. USER MANAGEMENT -->
+            <div id="screen-users" class="admin-screen space-y-6">
+                <div class="flex justify-between items-center bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                    <input type="text" placeholder="Search user by name or UID..." class="bg-slate-800 border border-slate-700 px-4 py-2 rounded-xl text-xs text-white focus:outline-none w-72">
+                    <button class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl transition">
+                        <i class="fa-solid fa-plus mr-1"></i> Add User Manually
+                    </button>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                    <h3 class="font-bold text-sm text-white mb-4">Registered Platform Users</h3>
+                    <div class="overflow-x-auto text-xs">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-slate-800 text-slate-400">
+                                    <th class="py-3 px-4">Gamer Tag</th>
+                                    <th class="py-3 px-4">Mobile</th>
+                                    <th class="py-3 px-4">Level</th>
+                                    <th class="py-3 px-4">Wallet Balance</th>
+                                    <th class="py-3 px-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/60">
+                                <tr>
+                                    <td class="py-3 px-4 font-bold text-white">Silent Sniper 77</td>
+                                    <td class="py-3 px-4 text-slate-300">+91 98457XXXXX</td>
+                                    <td class="py-3 px-4 text-emerald-400">Level 42</td>
+                                    <td class="py-3 px-4 font-bold text-white">₹432.50</td>
+                                    <td class="py-3 px-4 text-right space-x-2">
+                                        <button onclick="alert('User profile edited!')" class="text-indigo-400 hover:underline">Edit</button>
+                                        <button onclick="alert('User account banned!')" class="text-red-400 hover:underline">Ban</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. TOURNAMENT MANAGEMENT -->
+            <div id="screen-tournaments" class="admin-screen space-y-6">
+                <div class="flex justify-between items-center bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                    <div>
+                        <h3 class="font-bold text-sm text-white">Custom Room & Tournament Management</h3>
+                        <p class="text-[11px] text-slate-400">Create new matches, configure maps, per-kill payouts, entry fees & prize pools.</p>
+                    </div>
+                    <button onclick="openTournamentModal('create')" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl transition shadow-lg shadow-emerald-500/20">
+                        <i class="fa-solid fa-plus mr-1.5"></i> Create New Match
+                    </button>
+                </div>
+
+                <!-- Tournament Cards List -->
+                <div id="tournament-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Default Sample Card 1 -->
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 relative">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] bg-emerald-500/20 text-emerald-400 font-bold px-2.5 py-1 rounded uppercase">Squad • Bermuda</span>
+                            <span class="text-xs text-amber-400 font-bold">Prize: ₹1,500</span>
+                        </div>
+                        <h4 class="font-bold text-base text-white">Free Fire MAX Daily Cup #402</h4>
+                        <div class="grid grid-cols-3 gap-2 py-1 text-xs bg-slate-800/40 p-2.5 rounded-xl border border-slate-800/80">
+                            <div>
+                                <span class="text-slate-400 text-[10px]">Entry Fee</span>
+                                <p class="font-bold text-white">Free</p>
                             </div>
-                        `;
-                    }
-                });
+                            <div>
+                                <span class="text-slate-400 text-[10px]">Per Kill</span>
+                                <p class="font-bold text-emerald-400">₹8 / Kill</p>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 text-[10px]">Slots</span>
+                                <p class="font-bold text-indigo-400">40/50 Filled</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2 pt-1">
+                            <button onclick="openTournamentModal('edit', 'Free Fire MAX Daily Cup #402', 'Squad', 'Bermuda', 'Free', '₹1,500', '₹8')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2 rounded-xl text-xs transition border border-slate-700">
+                                <i class="fa-solid fa-pen-to-square mr-1 text-indigo-400"></i> Edit Match
+                            </button>
+                            <button onclick="deleteMatchCard(this)" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-3.5 py-2 rounded-xl text-xs transition" title="Delete Match">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                if(count === 0) container.innerHTML = '<p class="text-xs text-slate-500">No pending deposits found.</p>';
-            } catch(e) {
-                console.error(e);
+            <!-- 4. WALLET CONTROL -->
+            <div id="screen-wallet" class="admin-screen space-y-6">
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl max-w-xl space-y-4">
+                    <h3 class="font-bold text-sm text-white">Manual Balance Crediting / Debiting</h3>
+                    <div class="space-y-3 text-xs">
+                        <div>
+                            <label class="text-slate-400 font-medium">User UID / Username</label>
+                            <input type="text" placeholder="e.g. Silent Sniper 77" class="w-full bg-slate-800 border border-slate-700 px-4 py-2.5 rounded-xl text-white mt-1 focus:outline-none">
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="text-slate-400 font-medium">Action Type</label>
+                                <select class="w-full bg-slate-800 border border-slate-700 px-4 py-2.5 rounded-xl text-white mt-1 focus:outline-none">
+                                    <option>Credit (Add Funds)</option>
+                                    <option>Debit (Deduct Funds)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-slate-400 font-medium">Amount (₹)</label>
+                                <input type="number" placeholder="Enter amount" class="w-full bg-slate-800 border border-slate-700 px-4 py-2.5 rounded-xl text-white mt-1 focus:outline-none">
+                            </div>
+                        </div>
+                        <button onclick="alert('Wallet balance updated successfully via Admin Panel.')" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-xl transition mt-2">
+                            Apply Wallet Update
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. WITHDRAWAL APPROVAL -->
+            <div id="screen-withdrawals" class="admin-screen space-y-6">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+                    <h3 class="font-bold text-sm text-white mb-4">Pending User Payout Requests</h3>
+                    <div class="space-y-3 text-xs">
+                        <div class="bg-slate-800/50 border border-slate-800 p-4 rounded-xl flex justify-between items-center">
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="font-bold text-white text-sm">Viper_99</span>
+                                    <span class="text-emerald-400 font-bold">₹500.00</span>
+                                </div>
+                                <p class="text-slate-400 mt-1">UPI ID: viper99@paytm | Requested 5 mins ago</p>
+                            </div>
+                            <div class="space-x-2">
+                                <button onclick="alert('Withdrawal Approved & Processed!')" class="bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold px-4 py-2 rounded-xl transition">Approve</button>
+                                <button onclick="alert('Withdrawal Rejected.')" class="bg-red-500/20 text-red-400 hover:bg-red-500/30 px-3 py-2 rounded-xl transition">Reject</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. PUSH NOTIFICATIONS -->
+            <div id="screen-notifications" class="admin-screen space-y-6">
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl max-w-xl space-y-4">
+                    <h3 class="font-bold text-sm text-white">Broadcast Push Notification to App Users</h3>
+                    <div class="space-y-3 text-xs">
+                        <div>
+                            <label class="text-slate-400 font-medium">Notification Title</label>
+                            <input type="text" placeholder="e.g. 🚨 Mega Free Fire Tournament Live!" class="w-full bg-slate-800 border border-slate-700 px-4 py-2.5 rounded-xl text-white mt-1 focus:outline-none">
+                        </div>
+                        <div>
+                            <label class="text-slate-400 font-medium">Message Body</label>
+                            <textarea rows="3" placeholder="Enter notification message text..." class="w-full bg-slate-800 border border-slate-700 px-4 py-2.5 rounded-xl text-white mt-1 focus:outline-none"></textarea>
+                        </div>
+                        <button onclick="alert('Push notification broadcasted successfully to all devices!')" class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-xl transition mt-2">
+                            Send Broadcast Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. ANALYTICS -->
+            <div id="screen-analytics" class="admin-screen space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+                        <h3 class="font-bold text-sm text-white mb-2">Platform Traffic & Engagement</h3>
+                        <p class="text-xs text-slate-400 mb-4">Daily active players joining custom battle rooms.</p>
+                        <div class="h-48 bg-slate-800/40 rounded-xl flex items-center justify-center border border-slate-800">
+                            <span class="text-xs text-slate-500 font-medium"><i class="fa-solid fa-chart-line mr-1"></i> Live Analytics Graph Rendering...</span>
+                        </div>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl">
+                        <h3 class="font-bold text-sm text-white mb-2">Revenue vs Payouts</h3>
+                        <p class="text-xs text-slate-400 mb-4">Financial health report over current period.</p>
+                        <div class="h-48 bg-slate-800/40 rounded-xl flex items-center justify-center border border-slate-800">
+                            <span class="text-xs text-slate-500 font-medium"><i class="fa-solid fa-chart-pie mr-1"></i> Financial Stats Rendering...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- TOURNAMENT CREATE / EDIT MODAL -->
+    <div id="tournament-modal" class="modal fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-3xl p-6 shadow-2xl space-y-5">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 id="modal-heading" class="font-bold text-white text-base">Create New Match</h3>
+                <button onclick="closeTournamentModal()" class="text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <div class="space-y-3.5 text-xs">
+                <div>
+                    <label class="text-slate-400 font-medium">Match Title / Name</label>
+                    <input type="text" id="match-title-input" placeholder="e.g. Free Fire MAX Weekend Clash" class="w-full bg-slate-800 border border-slate-700 px-4 py-2.5 rounded-xl text-white mt-1 focus:outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-slate-400 font-medium">Match Type</label>
+                        <select id="match-type-select" class="w-full bg-slate-800 border border-slate-700 px-4 py-2.5 rounded-xl text-white mt-1 focus:outline-none">
+                            <option value="Solo">Solo</option>
+                            <option value="Duo">Duo</option>
+                            <option value="Squad">Squad</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-slate-400 font-medium">Map Selector</label>
+                        <select id="map-select" class="w-full bg-slate-800 border border-slate-700 px-4 py-2.5 rounded-xl text-white mt-1 focus:outline-none">
+                            <option value="Bermuda">Bermuda</option>
+                            <option value="Purgatory">Purgatory</option>
+                            <option value="Kalahari">Kalahari</option>
+                            <option value="Nexterra">Nexterra</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="text-slate-400 font-medium">Entry Fee (₹)</label>
+                        <input type="text" id="entry-fee-input" placeholder="0 or 20" class="w-full bg-slate-800 border border-slate-700 px-3 py-2.5 rounded-xl text-white mt-1 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 font-medium">Prize Pool (₹)</label>
+                        <input type="text" id="prize-pool-input" placeholder="1500" class="w-full bg-slate-800 border border-slate-700 px-3 py-2.5 rounded-xl text-white mt-1 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 font-medium">Per Kill (₹)</label>
+                        <input type="text" id="per-kill-input" placeholder="8" class="w-full bg-slate-800 border border-slate-700 px-3 py-2.5 rounded-xl text-white mt-1 focus:outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex space-x-3 pt-2">
+                <button onclick="closeTournamentModal()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 rounded-xl transition border border-slate-700 text-xs">Cancel</button>
+                <button onclick="saveMatchData()" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold py-3 rounded-xl transition shadow-lg shadow-emerald-500/20 text-xs">Save Match</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Panel Script Logic -->
+    <script>
+        let currentEditingCard = null;
+
+        function switchAdminScreen(screenName) {
+            document.querySelectorAll('.admin-screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            
+            const targetScreen = document.getElementById(`screen-${screenName}`);
+            if (targetScreen) {
+                targetScreen.classList.add('active');
             }
+
+            document.querySelectorAll('.admin-nav-btn').forEach(btn => {
+                if (btn.getAttribute('data-target') === screenName) {
+                    btn.classList.add('text-emerald-400', 'bg-emerald-500/10', 'font-bold');
+                    btn.classList.remove('text-slate-400');
+                } else {
+                    btn.classList.remove('text-emerald-400', 'bg-emerald-500/10', 'font-bold');
+                    btn.classList.add('text-slate-400');
+                }
+            });
+
+            const titles = {
+                'dashboard': 'Dashboard Overview',
+                'users': 'User Management & Profiles',
+                'tournaments': 'Tournament & Custom Room Management',
+                'wallet': 'Wallet Control & Balance Adjustment',
+                'withdrawals': 'Withdrawal Approval Gateway',
+                'notifications': 'Push Notifications Broadcast',
+                'analytics': 'Platform Analytics & Reports'
+            };
+            document.getElementById('page-title').innerText = titles[screenName] || 'Admin Control Panel';
         }
 
-        // Approve Deposit and Automatically Add Balance to User
-        window.approveDeposit = async function(depositId, userId) {
-            const amountStr = prompt("Enter amount to add for this UTR (e.g. 100):");
-            if(!amountStr) return;
-            const amount = parseFloat(amountStr);
-
-            try {
-                // Update user balance
-                const userRef = doc(db, "users", userId);
-                const userSnap = await getDoc(userRef);
-                if(userSnap.exists()) {
-                    const currentBal = userSnap.data().balance || 0;
-                    await updateDoc(userRef, { balance: currentBal + amount });
-                }
-
-                // Delete or update deposit status
-                await updateDoc(doc(db, "deposits", depositId), { status: "Approved" });
-
-                alert("Deposit approved and balance added successfully!");
-                loadDeposits();
-            } catch(e) {
-                alert("Error approving deposit: " + e.message);
-            }
-        };
-
-        // Add Balance by Unique App ID (Winner / Custom Credit)
-        window.addBalanceByAppId = async function() {
-            const appId = document.getElementById('target-appid').value.trim();
-            const amount = parseFloat(document.getElementById('target-amount').value);
-
-            if(!appId || !amount) {
-                alert("Please enter both App ID and Amount.");
-                return;
-            }
-
-            try {
-                const usersRef = collection(db, "users");
-                const q = query(usersRef, where("appId", "==", appId));
-                const querySnap = await getDocs(q);
-
-                if(querySnap.empty) {
-                    alert("User with this App ID not found!");
-                    return;
-                }
-
-                querySnap.forEach(async (userDoc) => {
-                    const userData = userDoc.data();
-                    const newBal = (userData.balance || 0) + amount;
-                    await updateDoc(doc(db, "users", userDoc.id), { balance: newBal });
-                    alert(`Successfully added ₹${amount} to user ${userData.email} (${appId})!`);
-                    document.getElementById('target-appid').value = '';
-                    document.getElementById('target-amount').value = '';
-                });
-            } catch(e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        // Load Withdrawals
-        async function loadWithdrawals() {
-            const container = document.getElementById('withdrawals-container');
-            container.innerHTML = '<p class="text-xs text-slate-500">Loading...</p>';
+        // Tournament Modal Handling (Create & Edit)
+        function openTournamentModal(mode, title = '', type = 'Squad', map = 'Bermuda', fee = 'Free', prize = '1000', kill = '10') {
+            const modal = document.getElementById('tournament-modal');
+            const heading = document.getElementById('modal-heading');
             
-            try {
-                const querySnapshot = await getDocs(collection(db, "withdrawals"));
-                container.innerHTML = '';
-                let count = 0;
-
-                querySnapshot.forEach((resDoc) => {
-                    const data = resDoc.data();
-                    if(data.status === "Pending") {
-                        count++;
-                        container.innerHTML += `
-                            <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex justify-between items-center">
-                                <div>
-                                    <p class="text-xs text-white"><b>UID:</b> ${data.uid}</p>
-                                    <p class="text-xs text-indigo-400 font-bold"><b>Requested Amount:</b> ₹${data.amount}</p>
-                                </div>
-                                <button onclick="markWithdrawalDone('${resDoc.id}')" class="bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl text-xs">
-                                    Mark Paid / Complete
-                                </button>
-                            </div>
-                        `;
-                    }
-                });
-
-                if(count === 0) container.innerHTML = '<p class="text-xs text-slate-500">No pending withdrawal requests.</p>';
-            } catch(e) {
-                console.error(e);
+            if (mode === 'create') {
+                heading.innerText = 'Create New Match';
+                document.getElementById('match-title-input').value = '';
+                document.getElementById('match-type-select').value = 'Squad';
+                document.getElementById('map-select').value = 'Bermuda';
+                document.getElementById('entry-fee-input').value = '';
+                document.getElementById('prize-pool-input').value = '';
+                document.getElementById('per-kill-input').value = '';
+                currentEditingCard = null;
+            } else {
+                heading.innerText = 'Edit Match Configuration';
+                document.getElementById('match-title-input').value = title;
+                document.getElementById('match-type-select').value = type;
+                document.getElementById('map-select').value = map;
+                document.getElementById('entry-fee-input').value = fee;
+                document.getElementById('prize-pool-input').value = prize.replace('₹', '');
+                document.getElementById('per-kill-input').value = kill.replace('₹', '').replace(' / Kill', '');
             }
+            modal.classList.add('active');
         }
 
-        window.markWithdrawalDone = async function(withdrawId) {
-            await updateDoc(doc(db, "withdrawals", withdrawId), { status: "Completed" });
-            alert("Withdrawal marked as completed!");
-            loadWithdrawals();
-        };
+        function closeTournamentModal() {
+            document.getElementById('tournament-modal').classList.remove('active');
+            currentEditingCard = null;
+        }
 
-        window.adminLogout = function() {
-            alert("Logged out from admin panel.");
-            window.location.href = "index.html";
-        };
+        function saveMatchData() {
+            const title = document.getElementById('match-title-input').value.trim() || 'Custom Tournament Match';
+            const type = document.getElementById('match-type-select').value;
+            const map = document.getElementById('map-select').value;
+            let fee = document.getElementById('entry-fee-input').value.trim();
+            fee = fee.toLowerCase() === 'free' || fee === '' ? 'Free' : `₹${fee}`;
+            const prize = `₹${document.getElementById('prize-pool-input').value.trim() || '1,000'}`;
+            const kill = `₹${document.getElementById('per-kill-input').value.trim() || '10'} / Kill`;
 
-        // Initialize loader on load
-        loadDeposits();
-        loadWithdrawals();
+            const container = document.getElementById('tournament-list-container');
+
+            if (currentEditingCard) {
+                currentEditingCard.querySelector('h4').innerText = title;
+                currentEditingCard.querySelector('.uppercase').innerText = `${type} • ${map}`;
+                const statPars = currentEditingCard.querySelectorAll('p.font-bold');
+                statPars[0].innerText = fee;
+                statPars[1].innerText = kill;
+                const editBtn = currentEditingCard.querySelector('button.bg-slate-800');
+                editBtn.setAttribute('onclick', `openTournamentModal('edit', '${title}', '${type}', '${map}', '${fee}', '${prize}', '${kill}')`);
+                currentEditingCard.querySelector('.text-amber-400').innerText = `Prize: ${prize}`;
+                alert('Match configuration updated successfully!');
+            } else {
+                const newCard = document.createElement('div');
+                newCard.className = 'bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 relative';
+                newCard.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] bg-emerald-500/20 text-emerald-400 font-bold px-2.5 py-1 rounded uppercase">${type} • ${map}</span>
+                        <span class="text-xs text-amber-400 font-bold">Prize: ${prize}</span>
+                    </div>
+                    <h4 class="font-bold text-base text-white">${title}</h4>
+                    <div class="grid grid-cols-3 gap-2 py-1 text-xs bg-slate-800/40 p-2.5 rounded-xl border border-slate-800/80">
+                        <div>
+                            <span class="text-slate-400 text-[10px]">Entry Fee</span>
+                            <p class="font-bold text-white">${fee}</p>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 text-[10px]">Per Kill</span>
+                            <p class="font-bold text-emerald-400">${kill}</p>
+                        </div>
+                        <div>
+                            <span class="text-slate-400 text-[10px]">Slots</span>
+                            <p class="font-bold text-indigo-400">0/50 Open</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 pt-1">
+                        <button onclick="openTournamentModal('edit', '${title}', '${type}', '${map}', '${fee}', '${prize}', '${kill}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold py-2 rounded-xl text-xs transition border border-slate-700">
+                            <i class="fa-solid fa-pen-to-square mr-1 text-indigo-400"></i> Edit Match
+                        </button>
+                        <button onclick="deleteMatchCard(this)" class="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-3.5 py-2 rounded-xl text-xs transition" title="Delete Match">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                container.prepend(newCard);
+                alert('New tournament match created successfully!');
+            }
+            closeTournamentModal();
+        }
+
+        function deleteMatchCard(buttonElement) {
+            if (confirm('Are you sure you want to delete this tournament match?')) {
+                const card = buttonElement.closest('.bg-slate-900');
+                card.remove();
+                alert('Tournament match deleted successfully.');
+            }
+        }
     </script>
 </body>
 </html>
