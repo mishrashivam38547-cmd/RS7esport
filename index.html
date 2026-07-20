@@ -7,12 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Firebase SDK Imports -->
+        <!-- Firebase SDK Imports -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { 
             getAuth, 
-            signInWithPopup, 
+            signInWithRedirect, 
+            getRedirectResult, 
             GoogleAuthProvider, 
             signInWithEmailAndPassword, 
             createUserWithEmailAndPassword,
@@ -35,16 +36,21 @@
         const db = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
 
+        // Google Sign-In via Redirect (Best for Mobile Browsers)
         window.handleGoogleLogin = function() {
-            signInWithPopup(auth, googleProvider)
-                .then((result) => {
+            signInWithRedirect(auth, googleProvider);
+        };
+
+        // Check redirect result when page loads back from Google
+        getRedirectResult(auth)
+            .then((result) => {
+                if (result && result.user) {
                     console.log("Google Login Success:", result.user);
                     closeAuthModal();
-                })
-                .catch((error) => {
-                    alert("Google Login Error: " + error.message);
-                });
-        };
+                }
+            }).catch((error) => {
+                alert("Google Login Error: " + error.message);
+            });
 
         window.handleEmailAuth = function(isSignUp) {
             const email = document.getElementById('auth-email').value;
@@ -94,6 +100,7 @@
             }
         });
     </script>
+    
 
     <style>
         .screen { display: none; }
