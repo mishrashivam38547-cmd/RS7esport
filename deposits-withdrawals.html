@@ -167,7 +167,7 @@
             }
         };
 
-        // Load Withdrawals with UPI ID & Copy Button
+        // Load Withdrawals with UPI ID, Copy Button & Cancel Option
         async function loadWithdrawals() {
             const container = document.getElementById('withdrawals-container');
             container.innerHTML = '<p class="text-xs text-slate-500">Loading...</p>';
@@ -181,7 +181,6 @@
                     const data = resDoc.data();
                     if(data.status === "Pending") {
                         count++;
-                        // Fallback agar Firestore mein field ka naam upiId ya upi ho toh handle ho jaye
                         const userUpi = data.upiId || data.upi || "Not Provided";
                         
                         container.innerHTML += `
@@ -196,9 +195,14 @@
                                         </button>
                                     </div>
                                 </div>
-                                <button onclick="markWithdrawalDone('${resDoc.id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">
-                                    Mark Paid / Complete
-                                </button>
+                                <div class="flex items-center space-x-2 w-full sm:w-auto justify-end">
+                                    <button onclick="cancelWithdrawal('${resDoc.id}', '${data.uid}', ${data.amount})" class="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 font-bold px-3 py-2 rounded-xl text-xs transition">
+                                        Cancel Request
+                                    </button>
+                                    <button onclick="markWithdrawalDone('${resDoc.id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">
+                                        Mark Paid
+                                    </button>
+                                </div>
                             </div>
                         `;
                     }
@@ -221,6 +225,29 @@
             }).catch(err => {
                 alert("Failed to copy UPI ID.");
             });
+        };
+
+        // Cancel Withdrawal Request & Refund Balance (Optional safety feature)
+        window.cancelWithdrawal = async function(withdrawId, userId, amount) {
+            if(!confirm("Are you sure you want to cancel this withdrawal request?")) return;
+
+            try {
+                // Status update to Cancelled
+                await updateDoc(doc(db, "withdrawals", withdrawId), { status: "Cancelled" });
+
+                // (Optional) Agar aap chahte hain ki cancel hone par user ka paisa wapas uske wallet mein refund ho jaye:
+                const userRef = doc(db, "users", userId);
+                const userSnap = await getDoc(userRef);
+                if(userSnap.exists()) {
+                    const currentBal = userSnap.data().balance || 0;
+                    await updateDoc(userRef, { balance: currentBal + amount });
+                }
+
+                alert("Withdrawal request cancelled successfully!");
+                loadWithdrawals();
+            } catch(e) {
+                alert("Error cancelling withdrawal: " + e.message);
+            }
         };
 
         window.markWithdrawalDone = async function(withdrawId) {
