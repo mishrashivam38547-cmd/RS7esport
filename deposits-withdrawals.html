@@ -76,9 +76,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // Simple security check or prompt admin login if needed
-        // Aap yahan apna admin email check laga sakte hain ya direct use kar sakte hain.
-
         // Load Pending Deposits
         async function loadDeposits() {
             const container = document.getElementById('deposits-container');
@@ -121,7 +118,6 @@
             const amount = parseFloat(amountStr);
 
             try {
-                // Update user balance
                 const userRef = doc(db, "users", userId);
                 const userSnap = await getDoc(userRef);
                 if(userSnap.exists()) {
@@ -129,7 +125,6 @@
                     await updateDoc(userRef, { balance: currentBal + amount });
                 }
 
-                // Delete or update deposit status
                 await updateDoc(doc(db, "deposits", depositId), { status: "Approved" });
 
                 alert("Deposit approved and balance added successfully!");
@@ -172,7 +167,7 @@
             }
         };
 
-        // Load Withdrawals
+        // Load Withdrawals with UPI ID & Copy Button
         async function loadWithdrawals() {
             const container = document.getElementById('withdrawals-container');
             container.innerHTML = '<p class="text-xs text-slate-500">Loading...</p>';
@@ -186,13 +181,22 @@
                     const data = resDoc.data();
                     if(data.status === "Pending") {
                         count++;
+                        // Fallback agar Firestore mein field ka naam upiId ya upi ho toh handle ho jaye
+                        const userUpi = data.upiId || data.upi || "Not Provided";
+                        
                         container.innerHTML += `
-                            <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex justify-between items-center">
-                                <div>
+                            <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                                <div class="space-y-1">
                                     <p class="text-xs text-white"><b>UID:</b> ${data.uid}</p>
                                     <p class="text-xs text-indigo-400 font-bold"><b>Requested Amount:</b> ₹${data.amount}</p>
+                                    <div class="flex items-center space-x-2 pt-1">
+                                        <p class="text-xs text-slate-300"><b>UPI ID:</b> <span id="upi-${resDoc.id}" class="text-emerald-400 font-mono">${userUpi}</span></p>
+                                        <button onclick="copyUpiId('${userUpi}')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-2 py-1 rounded-lg text-[10px] transition border border-slate-700">
+                                            <i class="fa-regular fa-copy mr-1"></i> Copy
+                                        </button>
+                                    </div>
                                 </div>
-                                <button onclick="markWithdrawalDone('${resDoc.id}')" class="bg-indigo-600 text-white font-bold px-4 py-2 rounded-xl text-xs">
+                                <button onclick="markWithdrawalDone('${resDoc.id}')" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition">
                                     Mark Paid / Complete
                                 </button>
                             </div>
@@ -205,6 +209,19 @@
                 console.error(e);
             }
         }
+
+        // Copy UPI function
+        window.copyUpiId = function(upiText) {
+            if(!upiText || upiText === "Not Provided") {
+                alert("No UPI ID available to copy.");
+                return;
+            }
+            navigator.clipboard.writeText(upiText).then(() => {
+                alert("UPI ID copied to clipboard: " + upiText);
+            }).catch(err => {
+                alert("Failed to copy UPI ID.");
+            });
+        };
 
         window.markWithdrawalDone = async function(withdrawId) {
             await updateDoc(doc(db, "withdrawals", withdrawId), { status: "Completed" });
