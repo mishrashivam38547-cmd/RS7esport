@@ -103,17 +103,13 @@
         <!-- TOURNEYS SECTION -->
         <section id="tourneys-section" class="hidden space-y-3">
             <h3 class="text-sm font-bold text-white">Active Custom Rooms</h3>
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-2">
-                <div class="flex justify-between items-center">
-                    <span class="text-xs font-bold text-emerald-400">BR Squad Match</span>
-                    <span class="text-[10px] bg-slate-800 px-2.5 py-1 rounded-lg text-slate-300">Entry: ₹10</span>
-                </div>
-                <p class="text-xs text-slate-400">Map: Bermuda | Time: 8:00 PM</p>
-                <!-- Connected with Validation Function (₹10 Entry Fee) -->
-                <button onclick="joinTournament(10, 'BR Squad Match')" class="w-full bg-emerald-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs mt-2">Join Room</button>
+            
+            <!-- Dynamic Tournaments List Container -->
+            <div id="tournaments-container" class="space-y-3">
+                <p class="text-slate-400 text-center py-4 text-xs">Loading tournaments...</p>
             </div>
         </section>
-
+        
         <!-- WALLET SECTION -->
         <section id="wallet-section" class="hidden space-y-4">
             <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl space-y-4">
