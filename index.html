@@ -349,8 +349,6 @@ onSnapshot(doc(db, "settings", "megaBattleMatch"), (docSnap) => {
         document.getElementById('battle-details').innerText = data.details;
     }
 });
-        
-        applyAdminConfigs();
 
         function generateUniqueAppId() {
             const randomNum = Math.floor(1000 + Math.random() * 9000);
