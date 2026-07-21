@@ -327,17 +327,28 @@
         const TOURNAMENT_DETAILS = "Prize Pool: ₹10,000 | Entry: Free";
 
         const googleProvider = new GoogleAuthProvider();
+// Real-time listener for Mega Battle (Replaces old static applyAdminConfigs)
+onSnapshot(doc(db, "settings", "megaBattleMatch"), (docSnap) => {
+    const cardEl = document.getElementById('featured-battle-card');
+    if (!cardEl) return;
 
-        function applyAdminConfigs() {
-            const cardEl = document.getElementById('featured-battle-card');
-            if(!SHOW_FEATURED_CARD) {
-                cardEl.classList.add('hidden');
-                return;
-            }
-            document.getElementById('battle-tag').innerText = TOURNAMENT_TYPE;
-            document.getElementById('battle-title').innerText = TOURNAMENT_TITLE;
-            document.getElementById('battle-details').innerText = TOURNAMENT_DETAILS;
+    if (docSnap.exists()) {
+        const data = docSnap.data();
+        
+        // Agar admin ne off kiya hai toh card hide kar do
+        if(!data.showCard) {
+            cardEl.classList.add('hidden');
+            return;
         }
+        
+        // Warna card show karke details update kar do
+        cardEl.classList.remove('hidden');
+        document.getElementById('battle-tag').innerText = data.type || "Mega Battle";
+        document.getElementById('battle-title').innerText = data.title;
+        document.getElementById('battle-details').innerText = data.details;
+    }
+});
+        
         applyAdminConfigs();
 
         function generateUniqueAppId() {
