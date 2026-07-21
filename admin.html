@@ -11,7 +11,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, getDoc, getDocs, query } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFirestore, collection, onSnapshot, addDoc, doc, updateDoc, deleteDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDyTfxnBHJvWfq7QEoMszl8OFrwY_rK59Q",
@@ -35,12 +35,12 @@
         // ================= REAL-TIME LISTENERS =================
         document.addEventListener("DOMContentLoaded", () => {
             
-            // 1. Dashboard Stats
+            // 1. Dashboard Stats - Total Users
             onSnapshot(collection(db, "users"), (snapshot) => {
                 document.getElementById('admin-total-users').innerText = snapshot.size;
             });
 
-            // 2. Active Tournaments List
+            // 2. Dashboard Stats - Active Tournaments
             onSnapshot(collection(db, "tournaments"), (snapshot) => {
                 document.getElementById('admin-active-tournaments').innerText = snapshot.size;
                 
@@ -61,7 +61,6 @@
                                 statusBadge = `<span class="text-[10px] bg-rose-500/20 text-rose-400 font-bold px-2.5 py-1 rounded uppercase animate-pulse">🔴 Live Now</span>`;
                             }
 
-                            // Build Match Card
                             container.innerHTML += `
                                 <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-3 relative shadow-lg">
                                     <div class="flex justify-between items-center">
@@ -115,7 +114,20 @@
                 }
             });
 
-            // 3. Completed Match History Real-time
+            // 3. Dashboard Stats - Pending Withdrawals Calculation
+            onSnapshot(collection(db, "withdrawals"), (snapshot) => {
+                let pendingTotal = 0;
+                snapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    if (data.status === 'Pending') {
+                        pendingTotal += Number(data.amount || 0);
+                    }
+                });
+                const pendingEl = document.getElementById('admin-pending-withdrawals');
+                if (pendingEl) pendingEl.innerText = `₹${pendingTotal}`;
+            });
+
+            // 4. Completed Match History Real-time
             onSnapshot(collection(db, "matchHistory"), (snapshot) => {
                 const historyContainer = document.getElementById('history-list-container');
                 if (historyContainer) {
@@ -143,13 +155,9 @@
                     }
                 }
             });
-            
-            // Note: Withdrawal & User listeners kept as requested (truncated for brevity but operational).
         });
 
-        // ================= MATCH ACTIONS (EDIT, ROOM ID, LIVE, COMPLETE) =================
-
-        // Update Match Status to Live
+        // ================= MATCH ACTIONS =================
         window.updateMatchStatus = async function(id, status) {
             try {
                 await updateDoc(doc(window.firebaseDb, "tournaments", id), { status: status });
@@ -159,7 +167,6 @@
             }
         };
 
-        // Open Room Credentials Modal
         window.openRoomCredentialsModal = function(id) {
             currentRoomUploadMatchId = id;
             document.getElementById('room-id-input').value = "";
@@ -170,7 +177,6 @@
             document.getElementById('room-credentials-modal').classList.remove('active');
         };
 
-        // Save Room Credentials to Firebase
         window.saveRoomCredentials = async function() {
             const roomId = document.getElementById('room-id-input').value.trim();
             const roomPass = document.getElementById('room-pass-input').value.trim();
@@ -181,25 +187,22 @@
                     roomId: roomId,
                     roomPass: roomPass
                 });
-                alert("Room ID and Password uploaded! Users can now copy them.");
+                alert("Room ID and Password uploaded!");
                 closeRoomCredentialsModal();
             } catch(e) {
                 alert("Error saving Room Details: " + e.message);
             }
         };
 
-        // Complete Match Logic (Fetch Users -> Save to History -> Delete Active)
         window.completeMatch = async function(matchId) {
-            if(!confirm("Mark this match as completed? This will save joined users to history and remove the match from active tournaments.")) return;
+            if(!confirm("Mark this match as completed? This will save joined users to history and remove the match.")) return;
             
             try {
-                // 1. Get Match Data
                 const matchRef = doc(window.firebaseDb, "tournaments", matchId);
                 const matchSnap = await getDoc(matchRef);
                 if(!matchSnap.exists()) return alert("Match not found!");
                 const matchData = matchSnap.data();
 
-                // 2. Process Joined Users to extract AppID & Game IGN
                 const joinedUsersUIDs = matchData.joinedUsers || [];
                 let joinedPlayersDetails = [];
 
@@ -212,25 +215,21 @@
                             uid: uid,
                             appId: uData.appId || "N/A",
                             gameUid: uData.gameUid || "N/A",
-                            gameIgn: uData.gameIgn || "Unknown",
-                            email: uData.email || ""
+                            gameIgn: uData.gameIgn || "Unknown"
                         });
                     }
                 }
 
-                // 3. Save to History Collection
                 const historyData = {
                     ...matchData,
                     status: 'Completed',
                     completedAt: new Date().toISOString(),
-                    players: joinedPlayersDetails // Saved perfectly
+                    players: joinedPlayersDetails
                 };
                 
                 await addDoc(collection(window.firebaseDb, "matchHistory"), historyData);
-
-                // 4. Delete from active list
                 await deleteDoc(matchRef);
-                alert("Match completed successfully! Details saved to Match History.");
+                alert("Match completed successfully and saved to history!");
 
             } catch (error) {
                 console.error(error);
@@ -239,7 +238,7 @@
         };
 
         window.deleteMatchCard = async function(id) {
-            if (confirm('Are you sure you want to permanently delete this tournament?')) {
+            if (confirm('Are you sure you want to delete this tournament?')) {
                 try {
                     await deleteDoc(doc(window.firebaseDb, "tournaments", id));
                 } catch (err) {
@@ -248,10 +247,9 @@
             }
         };
 
-        // Open Tournament Modal for Create OR Edit
         window.openTournamentModal = async function(mode, id = null) {
             const modal = document.getElementById('tournament-modal');
-            currentEditMatchId = id; // Store ID if editing
+            currentEditMatchId = id;
             
             if (mode === 'edit' && id) {
                 document.getElementById('modal-heading').innerText = "Edit Match Details";
@@ -284,7 +282,6 @@
             currentEditMatchId = null;
         };
 
-        // Save (Create or Update) Match Data
         window.saveMatchData = async function() {
             const title = document.getElementById('match-title-input').value.trim();
             const matchType = document.getElementById('match-type-select').value;
@@ -318,7 +315,6 @@
             }
         };
 
-        // Display Joined Players inside History Modal
         window.viewMatchPlayers = function(playersJsonEncoded) {
             const players = JSON.parse(decodeURIComponent(playersJsonEncoded));
             const tbody = document.getElementById('history-players-tbody');
@@ -358,18 +354,16 @@
     <!-- Sidebar Navigation -->
     <aside class="w-64 bg-slate-900 border-r border-slate-800 flex flex-col justify-between hidden md:flex z-50">
         <div>
-            <!-- Logo Header -->
             <div class="p-6 border-b border-slate-800 flex items-center space-x-3">
                 <div class="w-10 h-10 bg-gradient-to-tr from-emerald-500 to-indigo-600 rounded-xl flex items-center justify-center font-bold text-white shadow-lg">
-             <i class="fa-solid fa-shield-halved"></i>
+                    <i class="fa-solid fa-shield-halved"></i>
                 </div>
                 <div>
                     <h1 class="font-black text-white text-base">RS7<span class="text-emerald-400">_ESPORT</span></h1>
                     <p class="text-[10px] text-slate-400 uppercase tracking-widest">Admin Control</p>
-                </div>
+               </div>
             </div>
 
-            <!-- Navigation Links -->
             <nav class="p-4 space-y-1.5 text-xs font-medium overflow-y-auto">
                 <button onclick="switchAdminScreen('dashboard')" class="admin-nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-emerald-400 bg-emerald-500/10 font-bold" data-target="dashboard">
                     <i class="fa-solid fa-chart-pie w-5 text-sm"></i> <span>Dashboard</span>
@@ -380,12 +374,9 @@
                 <button onclick="switchAdminScreen('tournaments')" class="admin-nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-slate-400 hover:text-white hover:bg-slate-800" data-target="tournaments">
                     <i class="fa-solid fa-trophy w-5 text-sm"></i> <span>Active Tournaments</span>
                 </button>
-                
-                <!-- NEW COMPLETED MATCHES BUTTON -->
                 <button onclick="switchAdminScreen('history')" class="admin-nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-slate-400 hover:text-white hover:bg-slate-800" data-target="history">
                     <i class="fa-solid fa-clock-rotate-left w-5 text-sm text-indigo-400"></i> <span>Match History</span>
                 </button>
-
                 <button onclick="switchAdminScreen('wallet')" class="admin-nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-slate-400 hover:text-white hover:bg-slate-800" data-target="wallet">
                     <i class="fa-solid fa-wallet w-5 text-sm"></i> <span>Wallet Control</span>
                 </button>
@@ -396,36 +387,53 @@
     <!-- Main Content Workspace -->
     <main class="flex-1 flex flex-col h-screen overflow-y-auto bg-slate-950">
         
-        <!-- Top Header Bar -->
         <header class="bg-slate-900/60 backdrop-blur border-b border-slate-800 px-6 py-4 flex justify-between items-center z-40 sticky top-0">
             <div>
                 <h2 id="page-title" class="text-base font-bold text-white">Dashboard Overview</h2>
             </div>
         </header>
 
-        <!-- Dynamic Content Area -->
         <div class="p-6 space-y-6 flex-1">
 
-            <!-- 1. DASHBOARD OVERVIEW -->
+            <!-- 1. DASHBOARD OVERVIEW (ALL 4 CARDS RESTORED) -->
             <div id="screen-dashboard" class="admin-screen active space-y-6">
-                <!-- Keep existing stats cards here... -->
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-xs text-slate-400 font-medium">Total Users</span>
+                            <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-xs"><i class="fa-solid fa-users"></i></div>
                         </div>
                         <h3 id="admin-total-users" class="text-2xl font-black text-white">0</h3>
+                        <span class="text-[10px] text-emerald-400 font-bold mt-1 inline-block"><i class="fa-solid fa-arrow-up mr-1"></i>Real-time count</span>
                     </div>
                     <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-xs text-slate-400 font-medium">Active Tournaments</span>
+                            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs"><i class="fa-solid fa-trophy"></i></div>
                         </div>
                         <h3 id="admin-active-tournaments" class="text-2xl font-black text-white">0</h3>
+                        <span class="text-[10px] text-emerald-400 font-bold mt-1 inline-block">Running smoothly</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-slate-400 font-medium">Pending Withdrawals</span>
+                            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs"><i class="fa-solid fa-wallet"></i></div>
+                        </div>
+                        <h3 id="admin-pending-withdrawals" class="text-2xl font-black text-white">₹0</h3>
+                        <span class="text-[10px] text-amber-400 font-bold mt-1 inline-block">Requires approval</span>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-sm">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-slate-400 font-medium">Platform Revenue</span>
+                            <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-xs"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                        </div>
+                        <h3 id="admin-platform-revenue" class="text-2xl font-black text-white">₹0</h3>
+                        <span class="text-[10px] text-emerald-400 font-bold mt-1 inline-block">Live stats</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 3. TOURNAMENT MANAGEMENT (ACTIVE) -->
+            <!-- 2. TOURNAMENT MANAGEMENT -->
             <div id="screen-tournaments" class="admin-screen space-y-6">
                 <div class="flex justify-between items-center bg-slate-900 border border-slate-800 p-4 rounded-2xl">
                     <div>
@@ -435,21 +443,17 @@
                         <i class="fa-solid fa-plus mr-1.5"></i> Create New Match
                     </button>
                 </div>
-
-                <!-- Tournament Cards List Loads Here -->
                 <div id="tournament-list-container" class="grid grid-cols-1 xl:grid-cols-3 md:grid-cols-2 gap-4"></div>
             </div>
 
-            <!-- 4. MATCH HISTORY (NEW SCREEN) -->
+            <!-- 3. MATCH HISTORY -->
             <div id="screen-history" class="admin-screen space-y-6">
                 <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
                     <div>
                         <h3 class="font-bold text-sm text-white">Completed Match History</h3>
-                        <p class="text-xs text-slate-400">View finished matches and extract player App ID / Game UIDs for results distribution.</p>
+                        <p class="text-xs text-slate-400">View finished matches and extract player App ID / Game UIDs.</p>
                     </div>
-                    <div id="history-list-container" class="space-y-3">
-                        <!-- History List Loads Here -->
-                    </div>
+                    <div id="history-list-container" class="space-y-3"></div>
                 </div>
             </div>
 
@@ -517,12 +521,10 @@
         </div>
     </div>
 
-    <!-- ROOM ID & PASSWORD UPLOAD MODAL -->
+    <!-- ROOM ID & PASSWORD MODAL -->
     <div id="room-credentials-modal" class="modal fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4">
             <h3 class="font-bold text-white text-sm">Upload Room ID & Password</h3>
-            <p class="text-[10px] text-slate-400 mb-2">This will instantly show up on user devices so they can join the custom room.</p>
-            
             <div class="space-y-3 text-xs">
                 <div>
                     <label class="text-slate-400 font-medium">Room ID</label>
@@ -533,7 +535,6 @@
                     <input type="text" id="room-pass-input" placeholder="e.g. rs7pass" class="w-full bg-slate-800 border border-slate-700 px-4 py-2.5 rounded-xl text-white font-mono mt-1 focus:outline-none">
                 </div>
             </div>
-
             <div class="flex space-x-2 pt-2">
                 <button onclick="closeRoomCredentialsModal()" class="flex-1 bg-slate-800 text-white font-bold py-2.5 rounded-xl text-xs">Cancel</button>
                 <button onclick="saveRoomCredentials()" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2.5 rounded-xl text-xs">Upload Info</button>
@@ -541,14 +542,13 @@
         </div>
     </div>
 
-    <!-- VIEW JOINED PLAYERS HISTORY MODAL -->
+    <!-- VIEW JOINED PLAYERS MODAL -->
     <div id="history-players-modal" class="modal fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 w-full max-w-2xl rounded-3xl p-6 shadow-2xl space-y-4">
             <div class="flex justify-between items-center border-b border-slate-800 pb-3">
                 <h3 class="font-bold text-white text-sm">Players in Completed Match</h3>
                 <button onclick="closeHistoryPlayersModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            
             <div class="max-h-80 overflow-y-auto">
                 <table class="w-full text-left text-xs">
                     <thead>
@@ -559,15 +559,12 @@
                             <th class="py-2 px-3 rounded-tr-lg">In-Game Name (IGN)</th>
                         </tr>
                     </thead>
-                    <tbody id="history-players-tbody">
-                        <!-- Players dynamically rendered here -->
-                    </tbody>
+                    <tbody id="history-players-tbody"></tbody>
                 </table>
             </div>
         </div>
     </div>
 
-    <!-- Screen Switcher Script -->
     <script>
         function switchAdminScreen(screenName) {
             document.querySelectorAll('.admin-screen').forEach(screen => {
