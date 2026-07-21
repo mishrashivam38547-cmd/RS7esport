@@ -66,7 +66,7 @@
                 </div>
             </div>
 
-            <!-- Featured Mega Battle / Giveaway Card (Admin Controlled) -->
+            <!-- Featured Mega Battle / Giveaway Card -->
             <div id="featured-battle-card" class="bg-gradient-to-br from-indigo-900/40 via-purple-900/20 to-slate-900 border border-slate-800 p-5 rounded-3xl space-y-4 shadow-xl relative overflow-hidden">
                 <div id="battle-tag" class="inline-block bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[10px] px-3 py-1 rounded-full uppercase tracking-widest font-bold">
                     Mega Battle
@@ -75,7 +75,8 @@
                     <h3 id="battle-title" class="text-lg font-black text-white">Free Fire MAX Solo Clash</h3>
                     <p id="battle-details" class="text-xs text-slate-400 mt-1">Prize Pool: ₹10,000 | Entry: Free</p>
                 </div>
-                <button onclick="alert('Joined match successfully!')" class="w-full bg-white text-slate-950 font-bold py-3 rounded-2xl text-xs hover:bg-slate-100 transition shadow-md">
+                <!-- Connected with Validation Function (0 Entry Fee) -->
+                <button onclick="joinTournament(0, 'Free Fire MAX Solo Clash')" class="w-full bg-white text-slate-950 font-bold py-3 rounded-2xl text-xs hover:bg-slate-100 transition shadow-md">
                     Join Match Now
                 </button>
             </div>
@@ -105,10 +106,11 @@
             <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-2">
                 <div class="flex justify-between items-center">
                     <span class="text-xs font-bold text-emerald-400">BR Squad Match</span>
-                    <span class="text-[10px] bg-slate-800 px-2.5 py-1 rounded-lg text-slate-300">Filling Fast</span>
+                    <span class="text-[10px] bg-slate-800 px-2.5 py-1 rounded-lg text-slate-300">Entry: ₹10</span>
                 </div>
                 <p class="text-xs text-slate-400">Map: Bermuda | Time: 8:00 PM</p>
-                <button onclick="alert('Slot booked!')" class="w-full bg-emerald-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs mt-2">Join Room</button>
+                <!-- Connected with Validation Function (₹10 Entry Fee) -->
+                <button onclick="joinTournament(10, 'BR Squad Match')" class="w-full bg-emerald-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs mt-2">Join Room</button>
             </div>
         </section>
 
@@ -134,6 +136,14 @@
                         Request Withdrawal
                     </button>
                 </div>
+
+                <!-- Withdrawal History Status Container -->
+                <div class="pt-3 border-t border-slate-800 space-y-2">
+                    <h4 class="text-xs font-bold text-slate-300">Withdrawal History</h4>
+                    <div id="withdrawal-history-list" class="space-y-2 max-h-40 overflow-y-auto">
+                        <p class="text-[10px] text-slate-500 text-center py-2">No withdrawal requests found.</p>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -143,7 +153,6 @@
                 <h3 class="text-sm font-bold text-white">Watch & Earn Rewards</h3>
                 <p class="text-xs text-slate-400">Watch short sponsored videos to add cash directly to your wallet balance.</p>
                 
-                <!-- Ad Network Integration Placeholder Container -->
                 <div id="ad-container" class="w-full h-32 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-center text-slate-500 text-xs">
                     [ Ad Network Script Placement Area ]
                 </div>
@@ -210,7 +219,7 @@
         </button>
     </nav>
 
-    <!-- Add Money Modal (Hidden by Default) -->
+    <!-- Add Money Modal -->
     <div id="add-money-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
         <div class="bg-slate-900 border border-slate-800 w-full max-w-sm p-5 rounded-3xl space-y-4 shadow-2xl">
             <div class="flex justify-between items-center">
@@ -224,7 +233,6 @@
                 <button onclick="copyAdminUpi()" class="text-slate-400 hover:text-emerald-400 text-xs px-2 py-1"><i class="fa-regular fa-copy"></i></button>
             </div>
 
-            <!-- Amount Input Field -->
             <div class="space-y-1">
                 <label class="text-[10px] text-slate-400 uppercase tracking-semibold">Enter Amount (₹)</label>
                 <input type="number" id="amount-input" placeholder="e.g. 100" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-emerald-500">
@@ -247,7 +255,7 @@
         </div>
     </div>
 
-    <!-- Auth Modal / Login Screen -->
+    <!-- Auth Modal -->
     <div id="auth-modal" class="hidden fixed inset-0 bg-slate-950 flex flex-col items-center justify-center z-50 p-6 space-y-6">
         <div class="text-center space-y-2">
             <div class="w-14 h-14 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center text-2xl font-bold mx-auto">
@@ -263,14 +271,12 @@
                 <span>Continue with Google</span>
             </button>
                     
-            <!-- Email & Password Form Divider -->
             <div class="flex items-center my-4 w-full">
                 <div class="flex-grow border-t border-slate-800"></div>
                 <span class="px-3 text-[10px] text-slate-500">OR</span>
                 <div class="flex-grow border-t border-slate-800"></div>
             </div>
 
-            <!-- Email Password Inputs -->
             <div class="w-full space-y-3">
                 <input type="email" id="email-input" placeholder="Enter Email" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-emerald-500">
                 <input type="password" id="password-input" placeholder="Enter Password" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-emerald-500">
@@ -298,7 +304,7 @@
             signInWithEmailAndPassword, 
             createUserWithEmailAndPassword 
         } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, addDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDyTfxnBHJvWfq7QEoMszl8OFrwY_rK59Q",
@@ -313,22 +319,15 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // ==========================================
-        // [ADMIN CONFIGURATIONS] 
-        // Edit these settings from here or your admin panel code
-        // ==========================================
         const ADMIN_UPI_ID = "rs7esport@ybl";
         
-        // Featured Card Settings ('Mega Battle' or 'Giveaway')
-        const SHOW_FEATURED_CARD = true; // Set to false to hide completely
-        const TOURNAMENT_TYPE = "Mega Battle"; // Options: "Mega Battle" or "Giveaway"
+        const SHOW_FEATURED_CARD = true; 
+        const TOURNAMENT_TYPE = "Mega Battle"; // Can change to "Giveaway"
         const TOURNAMENT_TITLE = "Free Fire MAX Solo Clash";
         const TOURNAMENT_DETAILS = "Prize Pool: ₹10,000 | Entry: Free";
-        // ==========================================
 
         const googleProvider = new GoogleAuthProvider();
 
-        // Apply dynamic Admin settings to UI on load
         function applyAdminConfigs() {
             const cardEl = document.getElementById('featured-battle-card');
             if(!SHOW_FEATURED_CARD) {
@@ -341,65 +340,42 @@
         }
         applyAdminConfigs();
 
-        // Unique App ID Generator
         function generateUniqueAppId() {
             const randomNum = Math.floor(1000 + Math.random() * 9000);
             return `RS7-${randomNum}`;
         }
 
-        // Copy App ID function
         window.copyAppId = function() {
             const appIdText = document.getElementById('user-app-id').innerText.replace('App ID: ', '');
             navigator.clipboard.writeText(appIdText);
             alert("App ID copied to clipboard!");
         };
 
-        // Copy Admin UPI ID function
         window.copyAdminUpi = function() {
             navigator.clipboard.writeText(ADMIN_UPI_ID);
             alert("Admin UPI ID copied to clipboard!");
         };
 
-        // Google Login Handler via Redirect
         window.handleGoogleLogin = function() {
             signInWithRedirect(auth, googleProvider).catch(err => {
                 alert("Login Error: " + err.message);
             });
         };
        
-        // Email Login Function
         window.loginWithEmail = function() {
             const email = document.getElementById('email-input').value;
             const password = document.getElementById('password-input').value;
-            
-            if(!email || !password) {
-                alert("Please enter email and password");
-                return;
-            }
-
-            signInWithEmailAndPassword(auth, email, password)
-            .catch((error) => {
-                alert("Login Error: " + error.message);
-            });
+            if(!email || !password) { alert("Please enter email and password"); return; }
+            signInWithEmailAndPassword(auth, email, password).catch((error) => { alert("Login Error: " + error.message); });
         };
 
-        // Email Signup Function
         window.signupWithEmail = function() {
             const email = document.getElementById('email-input').value;
             const password = document.getElementById('password-input').value;
-            
-            if(!email || !password) {
-                alert("Please enter email and password");
-                return;
-            }
-
-            createUserWithEmailAndPassword(auth, email, password)
-            .catch((error) => {
-                alert("Signup Error: " + error.message);
-            });
+            if(!email || !password) { alert("Please enter email and password"); return; }
+            createUserWithEmailAndPassword(auth, email, password).catch((error) => { alert("Signup Error: " + error.message); });
         };
         
-        // Handle Auth State & User Database Creation
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 document.getElementById('auth-modal').classList.add('hidden');
@@ -423,7 +399,6 @@
                     userData = userSnap.data();
                 }
 
-                // Update UI elements with live data
                 document.getElementById('user-wallet-balance').innerText = `₹${userData.balance || 0}`;
                 document.getElementById('wallet-page-balance').innerText = `₹${userData.balance || 0}`;
                 document.getElementById('user-app-id').innerText = `App ID: ${userData.appId}`;
@@ -432,22 +407,20 @@
                 
                 if(userData.gameUid) document.getElementById('game-uid-input').value = userData.gameUid;
                 if(userData.gameIgn) document.getElementById('game-ign-input').value = userData.gameIgn;
+
+                // Load User Withdrawal History
+                loadWithdrawalHistory(user.uid);
             } else {
                 document.getElementById('auth-modal').classList.remove('hidden');
             }
         });
 
-        // Capture Redirect Result
         getRedirectResult(auth).catch(err => console.error(err));
 
-        // Logout Handler
         window.handleLogout = function() {
-            signOut(auth).then(() => {
-                alert("Logged out successfully!");
-            });
+            signOut(auth).then(() => { alert("Logged out successfully!"); });
         };
 
-        // Save Gaming Profile (UID & IGN)
         window.saveGamingDetails = async function() {
             const gameUid = document.getElementById('game-uid-input').value.trim();
             const gameIgn = document.getElementById('game-ign-input').value.trim();
@@ -460,10 +433,7 @@
 
             try {
                 const userRef = doc(db, "users", user.uid);
-                await updateDoc(userRef, {
-                    gameUid: gameUid,
-                    gameIgn: gameIgn
-                });
+                await updateDoc(userRef, { gameUid: gameUid, gameIgn: gameIgn });
                 alert("Gaming profile updated successfully!");
             } catch(e) {
                 console.error(e);
@@ -471,7 +441,43 @@
             }
         };
 
-        // Tab Switcher Logic
+        // ==========================================
+        // TOURNAMENT JOIN VALIDATION LOGIC
+        // ==========================================
+        window.joinTournament = async function(entryFee, matchName) {
+            const user = auth.currentUser;
+            if(!user) return;
+
+            const userRef = doc(db, "users", user.uid);
+            const userSnap = await getDoc(userRef);
+            const userData = userSnap.data();
+
+            // 1. Check if Game UID & IGN are saved
+            if(!userData.gameUid || !userData.gameIgn) {
+                alert("Please enter your Game UID and In-Game Name in Profile section before joining a match!");
+                switchTab('profile');
+                return;
+            }
+
+            // 2. Check if wallet has sufficient balance for entry fee
+            const currentBalance = userData.balance || 0;
+            if(entryFee > 0 && currentBalance < entryFee) {
+                alert(`Insufficient balance! You need ₹${entryFee} to join ${matchName}. Please add money to continue.`);
+                switchTab('wallet');
+                return;
+            }
+
+            // Deduct entry fee if applicable and join match
+            if(entryFee > 0) {
+                const newBalance = currentBalance - entryFee;
+                await updateDoc(userRef, { balance: newBalance });
+                document.getElementById('user-wallet-balance').innerText = `₹${newBalance}`;
+                document.getElementById('wallet-page-balance').innerText = `₹${newBalance}`;
+            }
+
+            alert(`Successfully joined ${matchName}! Slot booked.`);
+        };
+
         window.switchTab = function(tabName) {
             const sections = ['home', 'tourneys', 'wallet', 'earn', 'profile'];
             sections.forEach(sec => {
@@ -494,7 +500,6 @@
             }
         };
 
-        // Add Money Modal Controls
         window.openAddMoneyModal = function() {
             document.getElementById('admin-upi-display').innerText = ADMIN_UPI_ID;
             document.getElementById('add-money-modal').classList.remove('hidden');
@@ -503,7 +508,6 @@
             document.getElementById('add-money-modal').classList.add('hidden');
         };
 
-        // Submit Add Money with UTR & imgBB API Screenshot Upload
         window.submitAddMoney = async function() {
             const utr = document.getElementById('utr-input').value.trim();
             const fileInput = document.getElementById('screenshot-file').files[0];
@@ -529,7 +533,6 @@
 
                 if(data.success) {
                     const imageUrl = data.data.url;
-
                     await addDoc(collection(db, "deposits"), {
                         uid: user.uid,
                         email: user.email,
@@ -550,7 +553,6 @@
             }
         };
 
-        // Watch & Earn Reward Simulation
         window.watchAdToEarn = function() {
             alert("Loading sponsored ad...");
             setTimeout(async () => {
@@ -568,7 +570,9 @@
             }, 2000);
         };
 
-        // Automatic Withdrawal Deduction with UPI ID
+        // ==========================================
+        // WITHDRAWAL & PENDING/SUCCESS STATUS LOGIC
+        // ==========================================
         window.requestWithdrawal = async function() {
             const amount = parseFloat(document.getElementById('withdraw-amount').value);
             const userUpi = document.getElementById('withdraw-upi-input').value.trim();
@@ -596,6 +600,7 @@
             const updatedBalance = currentBalance - amount;
             await updateDoc(userRef, { balance: updatedBalance });
 
+            // Send request to withdrawals collection with 'Pending' status
             await addDoc(collection(db, "withdrawals"), {
                 uid: user.uid,
                 amount: amount,
@@ -608,8 +613,47 @@
             document.getElementById('wallet-page-balance').innerText = `₹${updatedBalance}`;
             document.getElementById('withdraw-amount').value = "";
             document.getElementById('withdraw-upi-input').value = "";
+            
             alert(`Withdrawal request of ₹${amount} submitted! Balance deducted automatically.`);
+            loadWithdrawalHistory(user.uid); // Refresh history list view
         };
+
+        async function loadWithdrawalHistory(uid) {
+            const historyContainer = document.getElementById('withdrawal-history-list');
+            historyContainer.innerHTML = `<p class="text-[10px] text-slate-400 text-center py-2">Loading history...</p>`;
+
+            try {
+                const q = query(collection(db, "withdrawals"), where("uid", "==", uid));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    historyContainer.innerHTML = `<p class="text-[10px] text-slate-500 text-center py-2">No withdrawal requests found.</p>`;
+                    return;
+                }
+
+                let html = "";
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const statusColor = data.status === "Success" ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20" : "text-amber-400 bg-amber-500/10 border-amber-500/20";
+                    
+                    html += `
+                        <div class="bg-slate-950 p-3 rounded-xl border border-slate-800/80 flex justify-between items-center text-xs">
+                            <div>
+                                <p class="font-bold text-white">₹${data.amount}</p>
+                                <p class="text-[10px] text-slate-400">UPI: ${data.upiId}</p>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-lg border text-[10px] font-bold ${statusColor}">
+                                ${data.status}
+                            </span>
+                        </div>
+                    `;
+                });
+                historyContainer.innerHTML = html;
+            } catch (e) {
+                console.error("Error loading history: ", e);
+                historyContainer.innerHTML = `<p class="text-[10px] text-rose-400 text-center py-2">Failed to load history.</p>`;
+            }
+        }
     </script>
 </body>
 </html>
