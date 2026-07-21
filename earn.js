@@ -1,6 +1,11 @@
-// LocalStorage se coins aur wallet balance load karna
+// LocalStorage se coins load karna
 let coins = localStorage.getItem('userCoins') ? parseInt(localStorage.getItem('userCoins')) : 0;
-document.getElementById('coinBalance').innerText = coins;
+
+// Safety check ke sath coin balance update karna
+let coinBalanceElement = document.getElementById('coinBalance');
+if (coinBalanceElement) {
+    coinBalanceElement.innerText = coins;
+}
 
 // Watch Ad function (1 Ad = 10 Coins)
 function watchAd() {
@@ -10,7 +15,10 @@ function watchAd() {
     // Ad complete hone ke baad 10 coins add honge
     coins += 10;
     localStorage.setItem('userCoins', coins);
-    document.getElementById('coinBalance').innerText = coins;
+    
+    if (coinBalanceElement) {
+        coinBalanceElement.innerText = coins;
+    }
     
     alert("Success! You earned 10 coins.");
 }
@@ -20,7 +28,10 @@ function convertCoins() {
     if (coins >= 100) {
         coins -= 100;
         localStorage.setItem('userCoins', coins);
-        document.getElementById('coinBalance').innerText = coins;
+        
+        if (coinBalanceElement) {
+            coinBalanceElement.innerText = coins;
+        }
 
         // Main Wallet balance update karne ka logic
         let currentWallet = parseFloat(localStorage.getItem('walletBalance') || '500'); 
