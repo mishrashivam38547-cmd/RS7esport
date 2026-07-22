@@ -127,33 +127,37 @@
             </div>
         </section>
 
-        <!-- EARN SECTION (Updated with Coin System & Watch Ad SDK Space) -->
-        <section id="earn-section" class="hidden space-y-4">
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl space-y-4 text-center">
-                <h3 class="text-sm font-bold text-white">Watch & Earn Coins</h3>
-                
-                <!-- Coin Balance Display -->
-                <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 flex justify-around items-center">
-                    <div>
-                        <p class="text-[10px] text-slate-400 uppercase">My Coins</p>
-                        <p id="user-coin-balance" class="text-xl font-black text-amber-400 mt-0.5">0 🪙</p>
-                    </div>
-                    <div class="border-l border-slate-800 pl-4">
-                        <p class="text-[10px] text-slate-400 uppercase">Conversion Rate</p>
-                        <p class="text-xs font-bold text-slate-300 mt-1">100 Coins = ₹10</p>
-                    </div>
-                </div>
+<!-- EARN SECTION (Updated with Banner & Watch Ad Button) -->
+<section id="earn-section" class="hidden space-y-4">
+    <div class="bg-slate-930 border border-slate-800 p-5 rounded-3xl space-y-4 text-center">
+        <h3 class="text-sm font-bold text-white">Watch & Earn Coins</h3>
 
-                <!-- Watch Ad Button with SDK space -->
-                <div id="ad-container" class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3">
-                    <div class="text-slate-500 text-xs">
-                        <!-- [ AD NETWORK SDK / SCRIPT INTEGRATION SPACE ] -->
-                        <p class="text-[11px] text-slate-400">Watch full ad video to earn 10 coins instantly.</p>
-                    </div>
-                    <button onclick="watchAdToEarnCoins()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl text-xs transition shadow-md flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-play"></i> Watch Ad & Earn 10 Coins
-                    </button>
-                </div>
+        <!-- Coin Balance Display -->
+        <div class="bg-slate-950 p-3 rounded-2xl border border-slate-800 flex justify-around items-center">
+            <div class="text-center">
+                <p class="text-[10px] uppercase text-slate-400">My Coins</p>
+                <p id="user-coin-balance" class="text-xl font-black text-amber-400 mt-0.5">0 🪙</p>
+            </div>
+            <div class="border-l border-slate-800 pl-4">
+                <p class="text-[10px] uppercase text-slate-400">Conversion Rate</p>
+                <p class="text-xs font-bold text-slate-300 mt-1">100 Coins = ₹10</p>
+            </div>
+        </div>
+
+        <!-- Watch Ad & Banner Section -->
+        <div id="ad-container" class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3">
+            <div class="text-slate-500 text-xs">
+                <p class="text-[11px] text-slate-400">Complete ad task or watch video to earn 10 coins instantly.</p>
+            </div>
+            
+            <!-- Watch Ad Button (Direct Link Trigger) -->
+            <button onclick="watchAdToEarnCoins()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-play"></i> Watch Ad & Earn 10 Coins
+            </button>
+        </div>
+    </div>
+</section>
+        
 
                 <!-- Convert Coins Card -->
                 <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-3 text-left">
@@ -679,28 +683,29 @@
                 alert("Error submitting deposit request.");
             }
         };
-       // ==========================================
-        // WATCH AD & EARN COINS SYSTEM
-        // ==========================================
-        window.watchAdToEarnCoins = function() {
-            // ==========================================
-            // AD NETWORK SDK / SCRIPT INTEGRATION SPACE
-            // ==========================================
-            alert("Loading sponsored ad...");
-            
-            setTimeout(async () => {
-                const user = auth.currentUser;
-                if(user) {
-                    const userRef = doc(db, "users", user.uid);
-                    await updateDoc(userRef, { coins: increment(10) });
-                    
-                    const userSnap = await getDoc(userRef);
-                    const updatedCoins = userSnap.data().coins || 0;
-                    document.getElementById('user-coin-balance').innerText = `${updatedCoins} 🪙`;
-                    alert("Ad watched successfully! 10 coins added.");
-                }
-            }, 2000);
-        };
+       // WATCH AD & EARN COINS SYSTEM (Direct Link + Timer Reward)
+window.watchAdToEarnCoins = function() {
+    // Aapka Monetag Direct Link
+    const directLink = "https://omg10.com/4/11370174"; 
+
+    // Link ko naye tab me kholne ke liye
+    window.open(directLink, '_blank');
+
+    // Timer set kiya hai taaki user ad page par r ruke (10 seconds)
+    setTimeout(async () => {
+        const user = auth.currentUser;
+        if (user) {
+            const userRef = doc(db, "users", user.uid);
+            await updateDoc(userRef, { coins: increment(10) });
+
+            const userSnap = await getDoc(userRef);
+            const updatedCoins = userSnap.data().coins || 0;
+            document.getElementById('user-coin-balance').innerText = `${updatedCoins} 🪙`;
+            alert("10 Coins added successfully!");
+        }
+    }, 10000); // 10000 ms = 25 seconds
+};
+        
 
         // Convert Coins System (100 Coins = ₹10)
         window.convertCoinsToWallet = async function() {
@@ -865,6 +870,7 @@
             }
         }
     </script>
+      <script>(function(s){s.dataset.zone='11370175',s.src='https://n6wxm.com/vignette.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
 </body>
 </html>
            
