@@ -128,7 +128,7 @@
             </div>
         </section>
 
-<!-- EARN SECTION (Updated with Banner & Watch Ad Button) -->
+<!-- EARN SECTION (Only visible when clicking 'Earn') -->
 <section id="earn-section" class="hidden space-y-4">
     <div class="bg-slate-930 border border-slate-800 p-5 rounded-3xl space-y-4 text-center">
         <h3 class="text-sm font-bold text-white">Watch & Earn Coins</h3>
@@ -145,21 +145,40 @@
             </div>
         </div>
 
-        <!-- Watch Ad & Banner Section -->
+        <!-- Watch Ad Button & Container -->
         <div id="ad-container" class="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 space-y-3">
             <div class="text-slate-500 text-xs">
-                <p class="text-[11px] text-slate-400">Complete ad task or watch video to earn 10 coins instantly.</p>
+                <p class="text-[11px] text-slate-400">Watch full ad video or click button to earn coins.</p>
             </div>
             
-            <!-- Watch Ad Button (Direct Link Trigger) -->
             <button onclick="watchAdToEarnCoins()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2">
                 <i class="fa-solid fa-play"></i> Watch Ad & Earn 10 Coins
             </button>
         </div>
+
+        <!-- Convert Coins Card -->
+        <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-3 text-left">
+            <h4 class="text-xs font-bold text-slate-300">Convert Coins to Wallet</h4>
+            <button onclick="convertCoinsToWallet()" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-3 rounded-xl transition-all">
+                Convert Coins to ₹ (100 Coins = ₹10)
+            </button>
+        </div>
+
+        <!-- Transfer / Withdrawal to Main Balance -->
+        <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-3 text-left">
+            <h4 class="text-xs font-bold text-slate-300">Transfer to Main Balance</h4>
+            <div class="space-y-1">
+                <label class="text-[10px] uppercase text-slate-400">ENTER YOUR APP ID FOR SECURITY</label>
+                <input type="text" id="transfer-appid-input" placeholder="e.g. RS7-5228" class="w-full bg-slate-900 border border-slate-800 p-3 rounded-xl text-white text-sm focus:outline-none focus:border-emerald-500">
+            </div>
+            <button onclick="transferCoinsToMainWallet()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3 rounded-xl transition-all">
+                Withdraw / Add to Wallet Balance
+            </button>
+        </div>
+
     </div>
 </section>
         
-
                 <!-- Convert Coins Card -->
                 <div class="bg-slate-950 border border-slate-800 p-4 rounded-2xl space-y-3 text-left">
                     <h4 class="text-xs font-bold text-white">Convert Coins to Wallet Balance</h4>
