@@ -226,11 +226,12 @@
             <span class="text-[10px] mt-0.5">History</span>
         </button>
         
-        <!-- Earn Tab Button in Nav -->
-        <button onclick="switchTab('earn')" class="nav-btn flex flex-col items-center text-slate-500 transition" data-tab="earn">
-            <i class="fa-solid fa-coins text-base text-amber-400"></i>
-            <span class="text-[10px] mt-0.5">Earn</span>
-        </button>
+        <!-- Earn Tab Button (Development Alert) -->
+<button onclick="showDevelopmentAlert()" class="nav-btn flex flex-col items-center text-slate-500 transition">
+    <i class="fa-solid fa-coins text-base text-amber-400"></i>
+    <span class="text-[10px] mt-0.5">Earn</span>
+</button>
+    
 
         <!-- + Add Money Button in Bottom Nav -->
         <button onclick="openAddMoneyModal()" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-3 py-2 rounded-2xl flex flex-col items-center shadow-lg transition transform active:scale-95">
@@ -682,6 +683,11 @@
                 alert("Error submitting deposit request.");
             }
         };
+        // DEVELOPMENT ALERT FUNCTION
+window.showDevelopmentAlert = function() {
+    alert("This option is under development / Mod version!");
+};
+        
        // WATCH AD & EARN COINS SYSTEM (Direct Link + Timer Reward)
 window.watchAdToEarnCoins = function() {
     // Aapka Monetag Direct Link
