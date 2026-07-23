@@ -34,7 +34,28 @@
         </div>
     </header>
 
+<!-- Main Content Container (Tabs) -->
+    <main class="p-4 space-y-4">
 
+        <!-- HOME SECTION -->
+        <section id="home-section" class="space-y-4">
+            <!-- User Profile Header Card -->
+            <div class="bg-slate-900 border border-slate-800 p-4 rounded-3xl flex justify-between items-center shadow-lg">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center">
+    <img src="logo.png" alt="Logo" class="w-full h-full object-cover">
+                    </div>
+                    <div>
+                        <h2 id="profile-name" class="text-sm font-bold text-white">Loading...</h2>
+                        <div class="flex items-center space-x-2 mt-0.5">
+                            <p id="user-app-id" class="text-[10px] text-emerald-400 font-mono">App ID: Loading...</p>
+                            <button onclick="copyAppId()" class="text-slate-400 hover:text-emerald-400 text-[10px]" title="Copy App ID">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            
             <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6144594253013055"
      crossorigin="anonymous"></script>
 <!-- RS7ESPORT -->
@@ -167,7 +188,7 @@
 </section>
         
 
-        <!-- PROFILE SECTION Header-->
+        <!-- PROFILE SECTION -->
         <section id="profile-section" class="hidden space-y-4">
             
             <div class="bg-slate-900 border border-slate-800 p-4 rounded-3xl flex justify-between items-center shadow-lg">
@@ -188,9 +209,8 @@
                 <h3 class="text-sm font-bold text-white">Account Settings & Gaming Details</h3>
                 <div class="space-y-1">
                     <p class="text-xs text-slate-400">Connected Account Email</p>
-                    <h2 id="profile-name" class="text-sm font-bold text-white">Loading...</h2>
-                    <div class="flex items-center space-x-2 mt-0.5">
-
+                 <p id="profile-email" class="text-xs font-mono text-emerald-400">Loading...</p>
+                </div>
                 <div class="space-y-3 pt-2 border-t border-slate-800">
                     <div class="space-y-1">
                         <label class="text-[10px] uppercase text-slate-400 font-semibold">Free Fire Game UID</label>
