@@ -527,10 +527,9 @@
                 document.getElementById('user-wallet-balance').innerText = `₹${userData.balance || 0}`;
                 document.getElementById('wallet-page-balance').innerText = `₹${userData.balance || 0}`;
                 document.getElementById('user-coin-balance').innerText = `${userData.coins || 0} 🪙`;
-                document.getElementById('user-app-id').innerText = `App ID: ${currentActiveUserAppId}`;
                 document.getElementById('profile-name').innerText = userData.displayName;
                 document.getElementById('profile-email').innerText = userData.email;
-                
+                document.getElementById('profile-app-id').innerText = `App ID: ${currentActiveUserAppId}`;
                 if(userData.gameUid) document.getElementById('game-uid-input').value = userData.gameUid;
                 if(userData.gameIgn) document.getElementById('game-ign-input').value = userData.gameIgn;
 
