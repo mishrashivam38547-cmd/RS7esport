@@ -372,30 +372,63 @@
                     tournamentsContainer.innerHTML = `<p class="text-slate-400 text-center py-4 text-xs">No active tournaments available.</p>`;
                     return;
                 }
+                
+                const currentUser = auth.currentUser;
+                const currentUid = currentUser ? currentUser.uid : null;
+
                 snapshot.forEach((docSnap) => {
                     const match = docSnap.data();
                     const matchId = docSnap.id;
                     const entryFee = Number(match.entryFee) || 0;
                     const matchName = match.title || "Custom Match";
                     const maxSlots = Number(match.slots) || 50;
-                    const joinedCount = match.joinedUsers ? match.joinedUsers.length : 0;
                     
+                    const joinedUsersList = match.joinedUsers || [];
+                    const joinedCount = joinedUsersList.length;
+                    
+                    // Check kya current user ne yeh match join kiya hai?
+                    const hasJoined = currentUid && joinedUsersList.includes(currentUid);
+
+                    // Status Badge Logic
+                    let statusBadge = `<span class="text-[10px] text-indigo-400 font-semibold bg-indigo-500/10 px-2.5 py-1 rounded-lg">Upcoming</span>`;
+                    if (match.status === 'Live' || (match.roomId && match.roomPass)) {
+                        statusBadge = `<span class="text-[10px] text-rose-400 font-semibold bg-rose-500/10 px-2.5 py-1 rounded-lg animate-pulse">🔴 Live Now</span>`;
+                    }
+
+                    // Room ID aur Password / Messages ka logic
                     let roomDetailsHtml = `
-                        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-[11px] text-amber-400 text-center">
+                        <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-[11px] text-slate-400 text-center">
                             Room ID & Password will be provided 10-15 minutes before the match starts.
                         </div>
                     `;
-                    
+
                     if (match.roomId && match.roomPass) {
-                        roomDetailsHtml = `
-                            <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
-                                <div>
-                                    <span class="text-slate-400 text-[10px]">Room ID:</span> <span class="font-mono text-white font-bold select-all">${match.roomId}</span> | 
-                                    <span class="text-slate-400 text-[10px]">Pass:</span> <span class="font-mono text-emerald-400 font-bold select-all">${match.roomPass}</span>
+                        if (hasJoined) {
+                            // Agar user ne join kiya hai aur admin ne credentials daal diye hain -> Room ID dikhao
+                            roomDetailsHtml = `
+                                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center text-xs">
+                                    <div>
+                                        <span class="text-slate-400 text-[10px]">Room ID:</span> <span class="font-mono text-white font-bold select-all">${match.roomId}</span> | 
+                                        <span class="text-slate-400 text-[10px]">Pass:</span> <span class="font-mono text-emerald-400 font-bold select-all">${match.roomPass}</span>
+                                    </div>
+                                    <button onclick="copyRoomCredentials('${match.roomId}', '${match.roomPass}')" class="text-emerald-400 hover:text-emerald-300 text-xs px-2 py-1 bg-emerald-500/10 rounded-lg">
+                                        <i class="fa-regular fa-copy"></i> Copy
+                                    </button>
                                 </div>
-                                <button onclick="copyRoomCredentials('${match.roomId}', '${match.roomPass}')" class="text-emerald-400 hover:text-emerald-300 text-xs px-2 py-1 bg-emerald-500/10 rounded-lg">
-                                    <i class="fa-regular fa-copy"></i> Copy
-                                </button>
+                            `;
+                        } else {
+                            // Agar user ne join nahi kiya hai, par admin ne credentials daal diye hain -> "Match is Live" dikhao
+                            roomDetailsHtml = `
+                                <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-[11px] text-amber-400 text-center font-semibold">
+                                    🔴 Match is Live / Credentials Uploaded. Join match to view Room ID & Password!
+                                </div>
+                            `;
+                        }
+                    } else if (hasJoined) {
+                        // Agar user ne join kar liya hai par admin ne abhi room details nahi dali
+                        roomDetailsHtml = `
+                            <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-[11px] text-emerald-400 text-center font-medium">
+                                Successfully Joined! Room details will appear here once uploaded by Admin.
                             </div>
                         `;
                     }
@@ -403,8 +436,11 @@
                     const matchCard = `
                         <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3">
                             <div class="flex justify-between items-center">
-                                <span class="text-xs font-bold text-emerald-400 uppercase">${match.map || "Bermuda"} • ${match.type || " "}</span>
-                                <span class="text-[10px] text-amber-400 font-semibold bg-amber-500/10 px-2.5 py-1 rounded-lg">Prize: ₹${match.prizePool || "0"}</span>
+                                <span class="text-xs font-bold text-emerald-400 uppercase">${match.map || "Bermuda"} • ${match.matchType || "Solo"}</span>
+                                <div class="flex items-center space-x-2">
+                                    ${statusBadge}
+                                    <span class="text-[10px] text-amber-400 font-semibold bg-amber-500/10 px-2.5 py-1 rounded-lg">Prize: ₹${match.prizePool || "0"}</span>
+                                </div>
                             </div>
                             <div>
                                 <h4 class="text-white font-bold text-xs">${matchName}</h4>
@@ -414,7 +450,7 @@
                             <div class="flex justify-between items-center pt-1 border-t border-slate-800/80">
                                 <span class="text-[10px] text-slate-300">Entry: ₹${entryFee}</span>
                                 <button onclick="joinTournament(${entryFee}, '${matchName}', '${matchId}')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition">
-                                    Join Room
+                                    ${hasJoined ? 'Joined ✅' : 'Join Room'}
                                 </button>
                             </div>
                         </div>
@@ -423,7 +459,7 @@
                 });
             });
         }
-
+        
         // 3. Real-time listener for Match History
         const historyContainer = document.getElementById('history-container');
         if (historyContainer) {
@@ -554,18 +590,67 @@
         };
 
         window.joinTournament = async function(entryFee, matchName, matchId) {
-            const user = auth.currentUser;
-            if(!user) return;
+    const user = auth.currentUser;
+    if (!user) {
+        alert("Please login first!");
+        return;
+    }
 
-            const userRef = doc(db, "users", user.uid);
-            const userSnap = await getDoc(userRef);
-            const userData = userSnap.data();
+    const userRef = doc(db, "users", user.uid);
+    const userSnap = await getDoc(userRef);
+    const userData = userSnap.data();
 
-            if(!userData.gameUid || !userData.gameIgn) {
-                alert("Please enter your Game UID and In-Game Name in Profile section before joining a match!");
-                switchTab('profile');
+    if (!userData.gameUid || !userData.gameIgn) {
+        alert("Please enter your Game UID and In-Game Name in Profile section before joining a match!");
+        switchTab('profile');
+        return;
+    }
+
+    if (matchId !== 'megaBattleMatch') {
+        const matchRef = doc(db, "tournaments", matchId);
+        const matchSnap = await getDoc(matchRef);
+        if (matchSnap.exists()) {
+            const matchData = matchSnap.data();
+            const joinedUsers = matchData.joinedUsers || [];
+            const maxSlots = Number(matchData.slots) || 50;
+
+            if (joinedUsers.includes(user.uid)) {
+                alert("You have already joined this tournament!");
                 return;
             }
+            if (joinedUsers.length >= maxSlots) {
+                alert("Sorry, this match is completely full!");
+                return;
+            }
+
+            const currentBalance = userData.balance || 0;
+            if (entryFee > 0 && currentBalance < entryFee) {
+                alert(`Insufficient balance! You need ₹${entryFee} to join ${matchName}. Please add money to continue.`);
+                switchTab('wallet');
+                return;
+            }
+
+            // --- YAHAN USER KO JOIN KARANE KA LOGIC HAI ---
+            try {
+                if (entryFee > 0) {
+                    // Agar entry fee hai toh wallet balance se minus karein aur joinedUsers array mein uid add karein
+                    await updateDoc(userRef, { balance: currentBalance - entryFee });
+                }
+                
+                // Firestore match document me user ki uid add kar rahe hain
+                await updateDoc(matchRef, {
+                    joinedUsers: arrayUnion(user.uid)
+                });
+
+                alert("Successfully Joined Tournament!");
+            } catch (error) {
+                console.error("Error joining tournament: ", error);
+                alert("Something went wrong. Please try again.");
+            }
+        }
+    }
+};
+        
 
             if (matchId !== 'megaBattleMatch') {
                 const matchRef = doc(db, "tournaments", matchId);
