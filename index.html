@@ -186,53 +186,47 @@
 
     </div>
 </section>
-        
-
-        <!-- PROFILE SECTION -->
-        <section id="profile-section" class="hidden space-y-4">
-            
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-3xl flex justify-between items-center shadow-lg">
-                <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center">
-    <img src="logo.png" alt="Logo" class="w-full h-full object-cover">
-                    </div>
-                    <div>
-                            <p id="user-app-id" class="text-[10px] text-emerald-400 font-mono">App ID: Loading...</p>
-                            <button onclick="copyAppId()" class="text-slate-400 hover:text-emerald-400 text-[10px]" title="Copy App ID">
-                                <i class="fa-regular fa-copy"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                
-            <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl space-y-4">
-                <h3 class="text-sm font-bold text-white">Account Settings & Gaming Details</h3>
-                <div class="space-y-1">
-                    <p class="text-xs text-slate-400">Connected Account Email</p>
-                 <p id="profile-email" class="text-xs font-mono text-emerald-400">Loading...</p>
-                </div>
-                <div class="space-y-3 pt-2 border-t border-slate-800">
-                    <div class="space-y-1">
-                        <label class="text-[10px] uppercase text-slate-400 font-semibold">Free Fire Game UID</label>
-                        <input type="text" id="game-uid-input" placeholder="e.g. 483920192" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white">
-                    </div>
-                    <div class="space-y-1">
-                        <label class="text-[10px] uppercase text-slate-400 font-semibold">In-Game Name (IGN)</label>
-                        <input type="text" id="game-ign-input" placeholder="e.g. Silent Sniper" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white">
-                    </div>
-                    <button onclick="saveGamingDetails()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md">
-                        Save Gaming Profile
-                    </button>
-                </div>
-
-                <button onclick="handleLogout()" class="w-full bg-rose-500/10 text-rose-400 border border-rose-500/20 font-bold py-3 rounded-xl text-xs mt-2">
-                    Log Out of Account
+      <!-- profile-section-->
+<section id="profile-section" class="hidden space-y-4">
+    <div class="bg-slate-900 border border-slate-800 p-4 rounded-3xl flex justify-between items-center shadow-lg">
+        <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-900 border border-slate-800 flex items-center justify-center">
+                <img src="logo.png" alt="Logo" class="w-full h-full object-cover">
+            </div>
+            <div>
+                <p id="profile-app-id" class="text-[10px] text-emerald-400 font-mono">App ID: Loading...</p>
+                <button onclick="copyAppId()" class="text-slate-400 hover:text-emerald-400 text-[10px]" title="Copy App ID">
+                    <i class="fa-regular fa-copy"></i> Copy
                 </button>
             </div>
-        </section>
+        </div>
+    </div>
+    
+    <div class="bg-slate-900 border border-slate-800 p-5 rounded-3xl space-y-4">
+        <h3 class="text-sm font-bold text-white">Account Settings & Gaming Details</h3>
+        <div class="space-y-1">
+            <p class="text-xs text-slate-400">Connected Account Email</p>
+            <p id="profile-email" class="text-xs font-mono text-emerald-400">Loading...</p>
+        </div>
+        <div class="space-y-3 pt-2 border-t border-slate-800">
+            <div class="space-y-1">
+                <label class="text-[10px] uppercase text-slate-400 font-semibold">Free Fire Game UID</label>
+                <input type="text" id="game-uid-input" placeholder="e.g. 483920192" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white">
+            </div>
+            <div class="space-y-1">
+                <label class="text-[10px] uppercase text-slate-400 font-semibold">In-Game Name (IGN)</label>
+                <input type="text" id="game-ign-input" placeholder="e.g. Silent Sniper" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white">
+            </div>
+            <button onclick="saveGamingDetails()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md">
+                Save Gaming Profile
+            </button>
+        </div>
 
-    </main>
-
+        <button onclick="handleLogout()" class="w-full bg-rose-500/10 text-rose-400 border border-rose-500/20 font-bold py-3 rounded-xl text-xs mt-2">
+            Log Out of Account
+        </button>
+    </div>
+</section>
     <!-- Bottom Navigation Bar -->
     <nav class="fixed bottom-0 left-0 right-0 bg-slate-950 border-t border-slate-900 flex justify-around items-center py-2.5 px-2 z-40">
         <button onclick="switchTab('home')" class="nav-btn flex flex-col items-center text-emerald-400 transition" data-tab="home">
