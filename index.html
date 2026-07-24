@@ -589,129 +589,102 @@
             }
         };
 
-        window.joinTournament = async function(entryFee, matchName, matchId) {
+        window.switchTab = function(tabName) {
+    ['home', 'tourneys', 'history', 'wallet', 'earn', 'profile'].forEach(sec => {
+        const el = document.getElementById(sec + '-section');
+        if (el) el.classList.add('hidden');
+    });
+
+    const activeSec = document.getElementById(tabName + '-section');
+    if (activeSec) activeSec.classList.remove('hidden');
+
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-emerald-400');
+        btn.classList.add('text-slate-500');
+    });
+
+    const currentBtn = document.querySelector(`[data-tab="${tabName}"]`);
+    if (currentBtn) {
+        currentBtn.classList.remove('text-slate-500');
+        currentBtn.classList.add('text-emerald-400');
+    }
+};
+
+window.joinTournament = async function(entryFee, matchName, matchId) {
     const user = auth.currentUser;
     if (!user) {
         alert("Please login first!");
         return;
     }
 
-    const userRef = doc(db, "users", user.uid);
-    const userSnap = await getDoc(userRef);
-    const userData = userSnap.data();
+    try {
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+        
+        if (!userSnap.exists()) {
+            alert("User data not found!");
+            return;
+        }
 
-    if (!userData.gameUid || !userData.gameIgn) {
-        alert("Please enter your Game UID and In-Game Name in Profile section before joining a match!");
-        switchTab('profile');
-        return;
-    }
+        const userData = userSnap.data();
 
-    if (matchId !== 'megaBattleMatch') {
-        const matchRef = doc(db, "tournaments", matchId);
-        const matchSnap = await getDoc(matchRef);
-        if (matchSnap.exists()) {
-            const matchData = matchSnap.data();
-            const joinedUsers = matchData.joinedUsers || [];
-            const maxSlots = Number(matchData.slots) || 50;
-
-            if (joinedUsers.includes(user.uid)) {
-                alert("You have already joined this tournament!");
-                return;
+        if (!userData.gameUid || !userData.gameIgn) {
+            alert("Please enter your Game UID and In-Game Name in Profile section before joining a match!");
+            if (typeof window.switchTab === 'function') {
+                window.switchTab('profile');
             }
-            if (joinedUsers.length >= maxSlots) {
-                alert("Sorry, this match is completely full!");
-                return;
-            }
+            return;
+        }
 
-            const currentBalance = userData.balance || 0;
-            if (entryFee > 0 && currentBalance < entryFee) {
-                alert(`Insufficient balance! You need ₹${entryFee} to join ${matchName}. Please add money to continue.`);
-                switchTab('wallet');
-                return;
-            }
+        if (matchId !== 'megaBattleMatch') {
+            const matchRef = doc(db, "tournaments", matchId);
+            const matchSnap = await getDoc(matchRef);
+            
+            if (matchSnap.exists()) {
+                const matchData = matchSnap.data();
+                const joinedUsers = matchData.joinedUsers || [];
+                const maxSlots = Number(matchData.slots) || 50;
 
-            // --- YAHAN USER KO JOIN KARANE KA LOGIC HAI ---
-            try {
+                if (joinedUsers.includes(user.uid)) {
+                    alert("You have already joined this tournament!");
+                    return;
+                }
+                if (joinedUsers.length >= maxSlots) {
+                    alert("Sorry, this match is completely full!");
+                    return;
+                }
+
+                const currentBalance = Number(userData.balance) || 0;
+                if (entryFee > 0 && currentBalance < entryFee) {
+                    alert(`Insufficient balance! You need ₹${entryFee} to join ${matchName}. Please add money to continue.`);
+                    if (typeof window.switchTab === 'function') {
+                        window.switchTab('wallet');
+                    }
+                    return;
+                }
+
                 if (entryFee > 0) {
-                    // Agar entry fee hai toh wallet balance se minus karein aur joinedUsers array mein uid add karein
-                    await updateDoc(userRef, { balance: currentBalance - entryFee });
+                    const newBalance = currentBalance - entryFee;
+                    await updateDoc(userRef, { balance: newBalance });
+                    const walletBalEl = document.getElementById('user-wallet-balance');
+                    const walletPageBalEl = document.getElementById('wallet-page-balance');
+                    if (walletBalEl) walletBalEl.innerText = `₹${newBalance}`;
+                    if (walletPageBalEl) walletPageBalEl.innerText = `₹${newBalance}`;
                 }
                 
-                // Firestore match document me user ki uid add kar rahe hain
                 await updateDoc(matchRef, {
                     joinedUsers: arrayUnion(user.uid)
                 });
 
-                alert("Successfully Joined Tournament!");
-            } catch (error) {
-                console.error("Error joining tournament: ", error);
-                alert("Something went wrong. Please try again.");
+                alert(`Successfully joined ${matchName}! Slot booked.`);
             }
         }
+    } catch (error) {
+        console.error("Error joining tournament: ", error);
+        alert("Something went wrong. Please try again.");
     }
 };
         
-
-            if (matchId !== 'megaBattleMatch') {
-                const matchRef = doc(db, "tournaments", matchId);
-                const matchSnap = await getDoc(matchRef);
-                if (matchSnap.exists()) {
-                    const matchData = matchSnap.data();
-                    const joinedUsers = matchData.joinedUsers || [];
-                    const maxSlots = Number(matchData.slots) || 50;
-
-                    if (joinedUsers.includes(user.uid)) {
-                        alert("You have already joined this tournament!");
-                        return;
-                    }
-                    if (joinedUsers.length >= maxSlots) {
-                        alert("Sorry, this match is completely full!");
-                        return;
-                    }
-
-                    const currentBalance = userData.balance || 0;
-                    if(entryFee > 0 && currentBalance < entryFee) {
-                        alert(`Insufficient balance! You need ₹${entryFee} to join ${matchName}. Please add money to continue.`);
-                        switchTab('wallet');
-                        return;
-                    }
-
-                    if(entryFee > 0) {
-                        const newBalance = currentBalance - entryFee;
-                        await updateDoc(userRef, { balance: newBalance });
-                        document.getElementById('user-wallet-balance').innerText = `₹${newBalance}`;
-                        document.getElementById('wallet-page-balance').innerText = `₹${newBalance}`;
-                    }
-
-                    await updateDoc(matchRef, { joinedUsers: arrayUnion(user.uid) });
-                    alert(`Successfully joined ${matchName}! Slot booked.`);
-                    return;
-                }
-            }
-            alert(`Successfully joined ${matchName}! Slot booked.`);
-        };
-
-        window.switchTab = function(tabName) {
-            ['home', 'tourneys', 'history', 'wallet', 'earn', 'profile'].forEach(sec => {
-                const el = document.getElementById(sec + '-section');
-                if(el) el.classList.add('hidden');
-            });
-
-            const activeSec = document.getElementById(tabName + '-section');
-            if(activeSec) activeSec.classList.remove('hidden');
-
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('text-emerald-400');
-                btn.classList.add('text-slate-500');
-            });
-
-            const currentBtn = document.querySelector(`[data-tab="${tabName}"]`);
-            if(currentBtn) {
-                currentBtn.classList.remove('text-slate-500');
-                currentBtn.classList.add('text-emerald-400');
-            }
-        };
-
         window.openAddMoneyModal = function() {
             document.getElementById('admin-upi-display').innerText = ADMIN_UPI_ID;
             document.getElementById('add-money-modal').classList.remove('hidden');
