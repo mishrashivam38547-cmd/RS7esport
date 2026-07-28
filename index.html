@@ -356,37 +356,29 @@
         const googleProvider = new GoogleAuthProvider();
         let currentActiveUserAppId = "";
         
-// Watch Ad & Earn Coins Function (30 Seconds Timer with Monetag Support)
 window.watchAdToEarnCoins = function() {
-    console.log("Loading Ad & Starting Timer...");
+    // 1. Direct link open karein naye tab mein
+    window.open("https://www.effectivecpmnetwork.com/k3gvwr320f?key=3828403b5bcbcf2b4a78e27cdaca0b76", "_blank");
 
-    // Monetag Ad Script Dynamically Load Karein
-    let script = document.createElement('script');
-    script.dataset.zone = '11442636';
-    script.src = 'https://n6wxm.com/vignette.min.js';
-    document.body.appendChild(script);
+    // 2. User ko notification dein
+    alert("Ad link open ho gaya hai! 30 seconds wait karein.");
 
-    // 30 Seconds ka Timer (Bina kisi annoying alert ke background mein chalega)
+    // 3. 30 seconds ka timer jo poora hone par coins add karega
     setTimeout(async () => {
-        await creditUserRewardCoins();
-    }, 30000); // 30 Seconds = 30000 ms
+        const user = auth.currentUser;
+        if (user) {
+            const userRef = doc(db, "users", user.uid);
+            await updateDoc(userRef, { coins: increment(10) });
+
+            const userSnap = await getDoc(userRef);
+            const updatedCoins = userSnap.data().coins || 0;
+            document.getElementById('user-coin-balance').innerText = `${updatedCoins} 🪙`;
+            alert("30 seconds complete! 10 Coins added successfully.");
+        } else {
+            alert("Please login first!");
+        }
+    }, 30000); // 30 seconds = 30000 milliseconds
 };
-
-// Coins Credit karne ka function
-async function creditUserRewardCoins() {
-    const user = auth.currentUser;
-    if (user) {
-        const userRef = doc(db, "users", user.uid);
-        await updateDoc(userRef, { coins: increment(10) });
-
-        const userSnap = await getDoc(userRef);
-        const updatedCoins = userSnap.data().coins || 0;
-        document.getElementById('user-coin-balance').innerText = `${updatedCoins} 🪙`;
-        alert("Success! 30 seconds complete. 10 Coins added to your account.");
-    } else {
-        alert("Please log in first to earn coins.");
-    }
-}
         
         // Real-time listener for Mega Battle Card
         onSnapshot(doc(db, "settings", "megaBattleMatch"), (docSnap) => {
