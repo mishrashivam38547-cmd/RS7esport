@@ -355,89 +355,39 @@
         const ADMIN_UPI_ID = "rs7esport@ybl";
         const googleProvider = new GoogleAuthProvider();
         let currentActiveUserAppId = "";
+        
+// Watch Ad & Earn Coins Function (30 Seconds Timer with Monetag Support)
+window.watchAdToEarnCoins = function() {
+    console.log("Loading Ad & Starting Timer...");
 
-        // --- UNITY ADS CONFIGURATION ---
-        const unityGameId = "800108014";
-        const rewardedAdUnitId = "Rewarded_Android";
-        const bannerAdUnitId = "Banner_Android";
-        const isTestMode = true; // Set to false when publishing live
+    // Monetag Ad Script Dynamically Load Karein
+    let script = document.createElement('script');
+    script.dataset.zone = '11442636';
+    script.src = 'https://n6wxm.com/vignette.min.js';
+    document.body.appendChild(script);
 
-        // Initialize Unity Ads on Load
-        window.addEventListener('DOMContentLoaded', () => {
-            initializeUnityAds();
-            loadUnityBannerAd();
-        });
+    // 30 Seconds ka Timer (Bina kisi annoying alert ke background mein chalega)
+    setTimeout(async () => {
+        await creditUserRewardCoins();
+    }, 30000); // 30 Seconds = 30000 ms
+};
 
-        function initializeUnityAds() {
-            if (typeof unityAds !== 'undefined') {
-                unityAds.initialize(unityGameId, isTestMode, {
-                    onInitializationComplete: () => {
-                        console.log("Unity Ads Initialized Successfully.");
-                    },
-                    onInitializationFailed: (error, message) => {
-                        console.log(`Unity Ads Init Failed: ${error} - ${message}`);
-                    }
-                });
-            } else {
-                console.log("Unity Ads SDK not detected yet.");
-            }
-        }
+// Coins Credit karne ka function
+async function creditUserRewardCoins() {
+    const user = auth.currentUser;
+    if (user) {
+        const userRef = doc(db, "users", user.uid);
+        await updateDoc(userRef, { coins: increment(10) });
 
-        // Unity Banner Ad Load Function
-        function loadUnityBannerAd() {
-            console.log("Loading Unity Banner Ad for Unit: " + bannerAdUnitId);
-            // Banner ad view handling goes here if running inside Unity/WebView environment
-        }
-
-        // Watch Unity Rewarded Ad & Earn Coins Function
-        window.watchAdToEarnCoins = function() {
-            if (typeof unityAds !== 'undefined') {
-                unityAds.load(rewardedAdUnitId, {
-                    onUnityAdsAdLoaded: (placementId) => {
-                        unityAds.show(rewardedAdUnitId, {}, {
-                            onUnityAdsShowComplete: async (placementId, showResult) => {
-                                if (showResult === "COMPLETED") {
-                                    await creditUserRewardCoins();
-                                } else {
-                                    alert("Ad was skipped. No coins awarded.");
-                                }
-                            }
-                        });
-                    },
-                    onUnityAdsFailedToLoad: (placementId, error, message) => {
-                        console.log("Unity Rewarded Ad failed to load. Using fallback timer.");
-                        // Fallback fallback simulation for web browsers
-                        fallbackRewardTimer();
-                    }
-                });
-            } else {
-                // Fallback for direct browser testing without native Unity SDK wrapper
-                fallbackRewardTimer();
-            }
-        };
-
-        function fallbackRewardTimer() {
-            alert("Loading Unity Rewarded Ad... Please wait 10 seconds.");
-            setTimeout(async () => {
-                await creditUserRewardCoins();
-            }, 10000);
-        }
-
-        async function creditUserRewardCoins() {
-            const user = auth.currentUser;
-            if (user) {
-                const userRef = doc(db, "users", user.uid);
-                await updateDoc(userRef, { coins: increment(10) });
-
-                const userSnap = await getDoc(userRef);
-                const updatedCoins = userSnap.data().coins || 0;
-                document.getElementById('user-coin-balance').innerText = `${updatedCoins} 🪙`;
-                alert("Success! 10 Coins added to your account.");
-            } else {
-                alert("Please log in first to earn coins.");
-            }
-        }
-
+        const userSnap = await getDoc(userRef);
+        const updatedCoins = userSnap.data().coins || 0;
+        document.getElementById('user-coin-balance').innerText = `${updatedCoins} 🪙`;
+        alert("Success! 30 seconds complete. 10 Coins added to your account.");
+    } else {
+        alert("Please log in first to earn coins.");
+    }
+}
+        
         // Real-time listener for Mega Battle Card
         onSnapshot(doc(db, "settings", "megaBattleMatch"), (docSnap) => {
             const cardEl = document.getElementById('featured-battle-card');
