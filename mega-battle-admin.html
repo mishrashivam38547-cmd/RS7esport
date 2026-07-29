@@ -22,7 +22,6 @@
                 <p class="text-[10px] text-slate-400">Manage Featured Match</p>
             </div>
         </div>
-        <!-- Apne main admin panel ya index ka link yahan de sakte hain -->
         <a href="index.html" class="text-xs bg-slate-900 border border-slate-800 px-3 py-2 rounded-xl text-slate-300 hover:text-white">
             <i class="fa-solid fa-arrow-left mr-1"></i> Back
         </a>
@@ -68,16 +67,16 @@
                     <label class="text-[10px] uppercase text-slate-400 font-semibold">Prize Pool & Details</label>
                     <input type="text" id="admin-tournament-details" placeholder="e.g. Prize Pool: ₹10,000 | Entry: Free" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-rose-500">
                 </div>
+
+                <!-- Upload Banner Box -->
                 <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl mb-4 space-y-3">
-    <h3 class="text-sm font-bold text-white">Upload Mega Battle Banner</h3>
-    <!-- File Input -->
-    <input type="file" id="bannerInput" accept="image/*" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500">
-    <button onclick="uploadBattleBanner()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-xl text-xs">
-        Update Image
-    </button>
+                    <h3 class="text-sm font-bold text-white">Upload Mega Battle Banner</h3>
+                    <input type="file" id="bannerInput" accept="image/*" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500">
+                    <button onclick="uploadBattleBanner()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-xl text-xs">
+                        Update Image
+                    </button>
                 </div>
                 
-
                 <button onclick="saveMegaBattleSettings()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 rounded-xl text-xs transition shadow-md mt-2">
                     Publish Changes Live
                 </button>
@@ -119,48 +118,44 @@
             }
         }
         loadData();
-        async function uploadBattleBanner() {
-    const input = document.getElementById('bannerInput');
-    
-    if (!input.files || input.files.length === 0) {
-        alert('Pehle koi image select karein!');
-        return;
-    }
-    
-    const file = input.files[0];
-    const formData = new FormData();
-    formData.append('image', file);
 
-    // Yahan apni ImgBB ki Free API Key daalein
-    const apiKey = 'c8bda32dd7a09f3926d029535dbb2940'; 
-
-    alert('Image upload ho rahi hai, kripya intezaar karein...');
-
-    try {
-        const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
-            method: 'POST',
-            body: formData
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            const imageUrl = data.data.url; // ImgBB ka direct image link
+        // Global scope mein function bind kiya taaki onclick chal sake
+        window.uploadBattleBanner = async function() {
+            const input = document.getElementById('bannerInput');
             
-            // Link ko localStorage mein save kar lein taaki index.html par dikh sake
-            localStorage.setItem('megaBattleBanner', imageUrl);
+            if (!input.files || input.files.length === 0) {
+                alert('Pehle koi image select karein!');
+                return;
+            }
+            
+            const file = input.files[0];
+            const formData = new FormData();
+            formData.append('image', file);
 
-            alert('Banner image successfully ImgBB par upload aur update ho gayi hai!');
-        } else {
-            alert('Upload fail ho gaya: ' + (data.error?.message || 'Unknown error'));
+            const apiKey = 'c8bda32dd7a09f3926d029535dbb2940'; 
+
+            alert('Image upload ho rahi hai, kripya intezaار karein...');
+
+            try {
+                const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const imageUrl = data.data.url;
+                    localStorage.setItem('megaBattleBanner', imageUrl);
+                    alert('Banner image successfully ImgBB par upload aur update ho gayi hai!');
+                } else {
+                    alert('Upload fail ho gaya: ' + (data.error?.message || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Network error ki wajah se upload nahi ho saka.');
+            }
         }
-    } catch (error) {
-        console.error('Error:', error);
-        netError = error;
-        alert('Network error ki wajah se upload nahi ho saka.');
-    }
-        }
-        
 
         // Save data to Firebase
         window.saveMegaBattleSettings = async function() {
@@ -195,3 +190,4 @@
     </script>
 </body>
 </html>
+
