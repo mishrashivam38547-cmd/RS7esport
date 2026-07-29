@@ -790,6 +790,41 @@ window.watchAdToEarnCoins = function() {
     }
 };
         
+      async function loadMegaBattleCard() {
+    try {
+        const matchRef = doc(db, "settings", "megaBattleMatch");
+        const matchSnap = await getDoc(matchRef);
+
+        if (matchSnap.exists()) {
+            const data = matchSnap.data();
+            const joinedUsers = data.joinedUsers || [];
+            const maxSlots = Number(data.maxSlots) || 50;
+
+            // 1. Slot counter update karein
+            const slotElement = document.getElementById('joined-users-count');
+            if (slotElement) {
+                slotElement.innerText = joinedUsers.length;
+            }
+
+            // 2. Check karein ki user ne pehle se join kiya hai ya nahi
+            const user = auth.currentUser;
+            const joinBtn = document.querySelector('button[onclick*="joinTournament"]');
+
+            if (user && joinedUsers.includes(user.uid)) {
+                if (joinBtn) {
+                    joinBtn.innerText = "Already Joined";
+                    joinBtn.disabled = true;
+                    joinBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Error loading mega battle data:", error);
+    }
+}
+
+// Page load hone par ise call karein
+loadMegaBattleCard();
         
         window.openAddMoneyModal = function() {
             document.getElementById('admin-upi-display').innerText = ADMIN_UPI_ID;
