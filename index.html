@@ -808,7 +808,7 @@ window.watchAdToEarnCoins = function() {
 
             // 2. Check karein ki user ne pehle se join kiya hai ya nahi
             const user = auth.currentUser;
-            const joinBtn = document.querySelector('button[onclick*="joinTournament"]');
+            const joinBtn = document.getElementById('mega-join-btn'); // सुनिश्चित करें कि बटन की id "mega-join-btn" हो
 
             if (user && joinedUsers.includes(user.uid)) {
                 if (joinBtn) {
@@ -816,12 +816,21 @@ window.watchAdToEarnCoins = function() {
                     joinBtn.disabled = true;
                     joinBtn.classList.add('opacity-50', 'cursor-not-allowed');
                 }
+
+                // 3. Room ID aur Password show karein agar joined hai
+                const roomBox = document.getElementById('room-details-box');
+                if (roomBox) {
+                    roomBox.classList.remove('hidden');
+                    document.getElementById('room-id-display').innerText = data.roomId || "Will share soon";
+                    document.getElementById('room-pass-display').innerText = data.roomPassword || "Will share soon";
+                }
             }
         }
     } catch (error) {
         console.error("Error loading mega battle data:", error);
     }
-}
+      }
+        
 
 // Page load hone par ise call karein
 loadMegaBattleCard();
