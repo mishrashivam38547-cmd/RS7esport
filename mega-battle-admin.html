@@ -119,6 +119,30 @@
             }
         }
         loadData();
+        function uploadBattleBanner() {
+    const input = document.getElementById('bannerInput');
+    
+    // Check karein ki file select ki gayi hai ya nahi
+    if (!input.files || input.files.length === 0) {
+        alert('Pehle koi image select karein!');
+        return;
+    }
+    
+    const file = input.files[0];
+    const reader = new FileReader();
+    
+    reader.onload = function(e) {
+        const base64Image = e.target.result;
+        
+        // LocalStorage mein save karein taaki user wale page par show ho sake
+        localStorage.setItem('megaBattleBanner', base64Image);
+
+        alert('Banner image successfully update ho gayi hai! Ab home page par check karein.');
+    };
+    
+    reader.readAsDataURL(file);
+        }
+        
 
         // Save data to Firebase
         window.saveMegaBattleSettings = async function() {
