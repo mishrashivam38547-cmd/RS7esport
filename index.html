@@ -44,17 +44,21 @@
 
         <!-- HOME SECTION -->
         <section id="home-section" class="space-y-4">
-            <div id="featured-battle-card" class="bg-gradient-to-br from-indigo-900/40 via-purple-900/20 to-slate-900 border border-slate-800 p-5 rounded-3xl space-y-4 shadow-xl relative overflow-hidden">
-                <div id="battle-tag" class="inline-block bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[10px] px-3 py-1 rounded-full uppercase tracking-widest font-bold">
-                    Mega Battle
-                </div>
-                <div>
-                    <h3 id="battle-title" class="text-lg font-black text-white">Free Fire MAX Solo Clash</h3>
-                    <p id="battle-details" class="text-xs text-slate-400 mt-1">Prize Pool: ₹10,000 | Entry: Free</p>
-                </div>
-                <button onclick="joinTournament(0, 'Free Fire MAX Solo Clash', 'megaBattleMatch')" class="w-full bg-white text-slate-950 font-bold py-3 rounded-2xl text-xs hover:bg-slate-100 transition shadow-md">
-                    Join Match Now
-                </button>
+            <div id="featured-battle-card" class="bg-gradient-to-br from-indigo-900/40 via-purple-900/20 to-slate-900 border border-indigo-500/30 rounded-2xl p-4 relative overflow-hidden">
+    
+    <!-- Banner Image Display -->
+    <img id="battle-banner" src="" alt="Battle Banner" class="w-full h-36 object-cover rounded-xl mb-3 hidden">
+
+    <div id="battle-tag" class="inline-block bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[10px] px-2 py-0.5 rounded-full mb-2">
+        Mega Battle
+    </div>
+    
+    <h3 id="battle-title" class="text-lg font-black text-white">Free Fire MAX Solo Clash</h3>
+    <p id="battle-details" class="text-xs text-slate-400 mt-1">Prize Pool: ₹10,000 | Entry: Free</p>
+    
+    <button onclick="joinTournament(0, 'Free Fire MAX Solo Clash', 'megaBattleMatch')" class="w-full bg-white text-slate-950 font-bold py-2 rounded-xl mt-3">
+        Join Match Now
+    </button>
             </div>
             
 <!-- Card ke theek niche Adsterra Banner Ad (728x90) -->
@@ -857,6 +861,44 @@ window.watchAdToEarnCoins = function() {
                 alert("Transfer failed due to a network error.");
             }
         };
+        // Page load hone par check karein agar pehle se koi image saved hai
+window.addEventListener('DOMContentLoaded', () => {
+    const savedImage = localStorage.getItem('megaBattleBanner');
+    if (savedImage) {
+        const bannerImg = document.getElementById('battle-banner');
+        bannerImg.src = savedImage;
+        bannerImg.classList.remove('hidden'); // Image visible kar dein
+    }
+});
+
+function uploadBattleBanner() {
+    const input = document.getElementById('bannerInput');
+    
+    // Agar koi file select nahi ki gayi hai toh alert dega aur yahin rok dega
+    if (!input.files || input.files.length === 0) {
+        alert('Pehle koi image select karein!');
+        return;
+    }
+    
+    const file = input.files[0];
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64Image = e.target.result;
+        
+        // LocalStorage mein save karein
+        localStorage.setItem('megaBattleBanner', base64Image);
+
+        // UI par image show karein
+        const bannerImg = document.getElementById('battle-banner');
+        bannerImg.src = base64Image;
+        bannerImg.classList.remove('hidden');
+
+        alert('Banner image successfully update ho gayi hai!');
+    };
+    reader.readAsDataURL(file);
+}
+        
 
         window.requestWithdrawal = async function() {
             const amount = parseFloat(document.getElementById('withdraw-amount').value);
