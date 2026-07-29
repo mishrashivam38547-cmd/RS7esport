@@ -68,6 +68,15 @@
                     <label class="text-[10px] uppercase text-slate-400 font-semibold">Prize Pool & Details</label>
                     <input type="text" id="admin-tournament-details" placeholder="e.g. Prize Pool: ₹10,000 | Entry: Free" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-rose-500">
                 </div>
+                <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl mb-4 space-y-3">
+    <h3 class="text-sm font-bold text-white">Upload Mega Battle Banner</h3>
+    <!-- File Input -->
+    <input type="file" id="bannerInput" accept="image/*" class="w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-500">
+    <button onclick="uploadBattleBanner()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 rounded-xl text-xs">
+        Update Image
+    </button>
+                </div>
+                
 
                 <button onclick="saveMegaBattleSettings()" class="w-full bg-rose-600 hover:bg-rose-500 text-white font-bold py-3 rounded-xl text-xs transition shadow-md mt-2">
                     Publish Changes Live
