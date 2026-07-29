@@ -73,6 +73,17 @@
                     <label class="text-[10px] uppercase text-slate-400 font-semibold">Prize Pool & Details</label>
                     <input type="text" id="admin-tournament-details" placeholder="e.g. Prize Pool: ₹10,000" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-rose-500">
                 </div>
+                <!-- Room ID & Password Fields -->
+<div class="grid grid-cols-2 gap-3">
+    <div class="space-y-1">
+        <label class="text-[10px] uppercase text-slate-400 font-semibold">Room ID</label>
+        <input type="text" id="admin-room-id" placeholder="e.g. 12345678" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-rose-500">
+    </div>
+    <div class="space-y-1">
+        <label class="text-[10px] uppercase text-slate-400 font-semibold">Password</label>
+        <input type="text" id="admin-room-password" placeholder="e.g. 1234" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-rose-500">
+    </div>
+</div>
 
                 <!-- Upload Banner Box -->
                 <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl mb-4 space-y-3">
@@ -119,6 +130,9 @@
                     document.getElementById('admin-tournament-title').value = data.title || "";
                     document.getElementById('admin-entry-fee').value = data.entryFee || "";
                     document.getElementById('admin-tournament-details').value = data.details || "";
+                    document.getElementById('admin-room-id').value = data.roomId || "";
+                    document.getElementById('admin-room-password').value = data.roomPassword || "";
+                    
                 }
             } catch (e) {
                 console.error("Error loading data:", e);
@@ -171,7 +185,9 @@
             const title = document.getElementById('admin-tournament-title').value.trim();
             const entryFee = Number(document.getElementById('admin-entry-fee').value) || 0;
             const details = document.getElementById('admin-tournament-details').value.trim();
-
+            const roomId = document.getElementById('admin-room-id').value.trim();
+            const roomPassword = document.getElementById('admin-room-password').value.trim();
+            
             if(!title) {
                 alert("Please enter a match name/title.");
                 return;
@@ -179,13 +195,16 @@
 
             try {
                 await setDoc(doc(db, "settings", "megaBattleMatch"), {
-                    showCard: showCard,
-                    type: type,
-                    title: title,
-                    entryFee: entryFee,
-                    details: details,
-                    updatedAt: new Date()
-                });
+    showCard: showCard,
+    type: type,
+    title: title,
+    entryFee: entryFee,
+    details: details,
+    roomId: roomId,
+    roomPassword: roomPassword,
+    updatedAt: new Date()
+}, { merge: true });
+                
 
                 const statusEl = document.getElementById('save-status');
                 statusEl.classList.remove('hidden');
