@@ -863,16 +863,16 @@ window.watchAdToEarnCoins = function() {
         };
         // Page load hone par check karein agar pehle se koi image saved hai
 window.addEventListener('DOMContentLoaded', () => {
-    const savedImage = localStorage.getItem('megaBattleBanner');
-    if (savedImage) {
+    const savedImageUrl = localStorage.getItem('megaBattleBanner');
+    if (savedImageUrl) {
         const bannerImg = document.getElementById('battle-banner');
         if (bannerImg) {
-            bannerImg.src = savedImage;
-            bannerImg.classList.remove('hidden'); // Image visible kar dega
+            bannerImg.src = savedImageUrl;
+            bannerImg.classList.remove('hidden'); // Image show karne ke liye
         }
     }
 });
-
+        
 function uploadBattleBanner() {
     const input = document.getElementById('bannerInput');
     
