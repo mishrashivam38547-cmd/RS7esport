@@ -729,7 +729,7 @@ window.watchAdToEarnCoins = function() {
             }
             
             // Save joined user to Firebase settings
-            await setDoc(matchRef, {
+            await updateDoc(matchRef, {
                 joinedUsers: arrayUnion(user.uid)
             }, { merge: true });
 
