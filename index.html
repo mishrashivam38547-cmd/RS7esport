@@ -661,73 +661,128 @@ window.watchAdToEarnCoins = function() {
         };
 
         window.joinTournament = async function(entryFee, matchName, matchId) {
-            const user = auth.currentUser;
-            if (!user) {
-                alert("Please login first!");
+    const user = auth.currentUser;
+    if (!user) {
+        alert("Please login first!");
+        return;
+    }
+
+    try {
+        const userRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userRef);
+        
+        if (!userSnap.exists()) {
+            alert("User data not found!");
+            return;
+        }
+
+        const userData = userSnap.data();
+
+        // 1. Check Game UID & IGN
+        if (!userData.gameUid || !userData.gameIgn) {
+            alert("Please enter your Game UID and In-Game Name in Profile section before joining a match!");
+            window.switchTab('profile');
+            return;
+        }
+
+        const currentBalance = Number(userData.balance) || 0;
+
+        // 2. Check Wallet Balance
+        if (entryFee > 0 && currentBalance < entryFee) {
+            alert(`Insufficient balance! You need ₹${entryFee} to join ${matchName}. Please add money to continue.`);
+            window.switchTab('wallet');
+            return;
+        }
+
+        // 3. Handle Mega Battle Match
+        if (matchId === 'megaBattleMatch') {
+            const matchRef = doc(db, "settings", "megaBattleMatch");
+            const matchSnap = await getDoc(matchRef);
+            
+            let joinedUsers = [];
+            let maxSlots = 50;
+
+            if (matchSnap.exists()) {
+                const matchData = matchSnap.data();
+                joinedUsers = matchData.joinedUsers || [];
+                maxSlots = Number(matchData.slots) || 50;
+            }
+
+            if (joinedUsers.includes(user.uid)) {
+                alert("You have already joined this Mega Battle!");
+                return;
+            }
+            if (joinedUsers.length >= maxSlots) {
+                alert("Sorry, this Mega Battle is completely full!");
                 return;
             }
 
-            try {
-                const userRef = doc(db, "users", user.uid);
-                const userSnap = await getDoc(userRef);
+            // Deduct Balance & Update UI
+            if (entryFee > 0) {
+                const newBalance = currentBalance - entryFee;
+                await updateDoc(userRef, { balance: newBalance });
                 
-                if (!userSnap.exists()) {
-                    alert("User data not found!");
-                    return;
-                }
-
-                const userData = userSnap.data();
-
-                if (!userData.gameUid || !userData.gameIgn) {
-                    alert("Please enter your Game UID and In-Game Name in Profile section before joining a match!");
-                    window.switchTab('profile');
-                    return;
-                }
-
-                if (matchId !== 'megaBattleMatch') {
-                    const matchRef = doc(db, "tournaments", matchId);
-                    const matchSnap = await getDoc(matchRef);
-                    
-                    if (matchSnap.exists()) {
-                        const matchData = matchSnap.data();
-                        const joinedUsers = matchData.joinedUsers || [];
-                        const maxSlots = Number(matchData.slots) || 50;
-
-                        if (joinedUsers.includes(user.uid)) {
-                            alert("You have already joined this tournament!");
-                            return;
-                        }
-                        if (joinedUsers.length >= maxSlots) {
-                            alert("Sorry, this match is completely full!");
-                            return;
-                        }
-
-                        const currentBalance = Number(userData.balance) || 0;
-                        if (entryFee > 0 && currentBalance < entryFee) {
-                            alert(`Insufficient balance! You need ₹${entryFee} to join ${matchName}. Please add money to continue.`);
-                            window.switchTab('wallet');
-                            return;
-                        }
-
-                        if (entryFee > 0) {
-                            const newBalance = currentBalance - entryFee;
-                            await updateDoc(userRef, { balance: newBalance });
-                            document.getElementById('user-wallet-balance').innerText = `₹${newBalance}`;
-                            document.getElementById('wallet-page-balance').innerText = `₹${newBalance}`;
-                        }
-                        
-                        await updateDoc(matchRef, {
-                            joinedUsers: arrayUnion(user.uid)
-                        });
-
-                        alert(`Successfully joined ${matchName}! Slot booked.`);
-                    }
-                }
-            } catch (error) {
-                console.error("Error joining tournament: ", error);
-                alert("Something went wrong. Please try again.");
+                // Safe check elements before updating text
+                if(document.getElementById('user-wallet-balance')) 
+                    document.getElementById('user-wallet-balance').innerText = `₹${newBalance}`;
+                if(document.getElementById('wallet-page-balance')) 
+                    document.getElementById('wallet-page-balance').innerText = `₹${newBalance}`;
             }
-        };
+            
+            // Save joined user to Firebase settings
+            await setDoc(matchRef, {
+                joinedUsers: arrayUnion(user.uid)
+            }, { merge: true });
+
+            alert(`Successfully joined ${matchName}! Slot booked.`);
+
+        } 
+        // 4. Handle Regular Tournaments
+        else {
+            const matchRef = doc(db, "tournaments", matchId);
+            const matchSnap = await getDoc(matchRef);
+            
+            if (!matchSnap.exists()) {
+                alert("Tournament not found!");
+                return;
+            }
+
+            const matchData = matchSnap.data();
+            const joinedUsers = matchData.joinedUsers || [];
+            const maxSlots = Number(matchData.slots) || 50;
+
+            if (joinedUsers.includes(user.uid)) {
+                alert("You have already joined this tournament!");
+                return;
+            }
+            if (joinedUsers.length >= maxSlots) {
+                alert("Sorry, this match is completely full!");
+                return;
+            }
+
+            if (entryFee > 0) {
+                const newBalance = currentBalance - entryFee;
+                await updateDoc(userRef, { balance: newBalance });
+                
+                if(document.getElementById('user-wallet-balance')) 
+                    document.getElementById('user-wallet-balance').innerText = `₹${newBalance}`;
+                if(document.getElementById('wallet-page-balance')) 
+                    document.getElementById('wallet-page-balance').innerText = `₹${newBalance}`;
+            }
+            
+            await updateDoc(matchRef, {
+                joinedUsers: arrayUnion(user.uid)
+            });
+
+            alert(`Successfully joined ${matchName}! Slot booked.`);
+        }
+
+    } catch (error) {
+        console.error("Error joining tournament: ", error);
+        alert("Error: " + error.message); // इससे असली एरर पता चल जाएगी अगर कोई और दिक्कत होगी
+    }
+};
+        
         
         window.openAddMoneyModal = function() {
             document.getElementById('admin-upi-display').innerText = ADMIN_UPI_ID;
