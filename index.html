@@ -866,8 +866,10 @@ window.addEventListener('DOMContentLoaded', () => {
     const savedImage = localStorage.getItem('megaBattleBanner');
     if (savedImage) {
         const bannerImg = document.getElementById('battle-banner');
-        bannerImg.src = savedImage;
-        bannerImg.classList.remove('hidden'); // Image visible kar dein
+        if (bannerImg) {
+            bannerImg.src = savedImage;
+            bannerImg.classList.remove('hidden'); // Image visible kar dega
+        }
     }
 });
 
