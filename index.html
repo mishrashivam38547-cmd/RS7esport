@@ -44,22 +44,26 @@
 
         <!-- HOME SECTION -->
         <section id="home-section" class="space-y-4">
-            <div id="featured-battle-card" class="bg-gradient-to-br from-indigo-900/40 via-purple-900/20 to-slate-900 border border-indigo-500/30 rounded-2xl p-4 relative overflow-hidden">
-    
-    <!-- Banner Image Display -->
-    <img id="battle-banner" src="" alt="Battle Banner" class="w-full h-36 object-cover rounded-xl mb-3 hidden">
-
-    <div id="battle-tag" class="inline-block bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[10px] px-2 py-0.5 rounded-full mb-2">
-        Mega Battle
+            <!-- Mega Battle Card Inside index.html -->
+<div id="featured-battle-card" class="bg-gradient-to-br from-indigo-900/40 via-purple-900/20 to-slate-900 border border-indigo-500/30 text-indigo-300 p-4 rounded-3xl space-y-3 relative overflow-hidden">
+    <div class="flex justify-between items-center">
+        <span id="battle-tag" class="inline-block bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-[10px] px-2.5 py-1 rounded-full font-bold uppercase">Mega Battle</span>
+            <img id="battle-banner" src="" alt="Battle Banner" class="w-full h-36 object-cover rounded-xl mb-3 hidden">
+        <!-- Slots Counter UI -->
+        <span id="slot-counter" class="text-[10px] font-semibold text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full">
+            Joined: <span id="joined-users-count">0</span> / <span id="max-slots-display">50</span> Slots
+        </span>
     </div>
-    
-    <h3 id="battle-title" class="text-lg font-black text-white">Free Fire MAX Solo Clash</h3>
-    <p id="battle-details" class="text-xs text-slate-400 mt-1">Prize Pool: ₹10,000 | Entry: Free</p>
-    
-    <button onclick="joinTournament(0, 'Free Fire MAX Solo Clash', 'megaBattleMatch')" class="w-full bg-white text-slate-950 font-bold py-2 rounded-xl mt-3">
+
+    <div>
+        <h3 id="battle-title" class="text-lg font-black text-white">Free Fire MAX Solo Clash</h3>
+        <p id="battle-details" class="text-xs text-slate-400 mt-1">Prize Pool: ₹10,000 | Entry: ₹3000</p>
+    </div>
+
+    <button onclick="joinTournament()" class="w-full bg-white text-slate-950 font-bold py-3 rounded-2xl text-xs hover:bg-slate-200 transition shadow-lg">
         Join Match Now
     </button>
-            </div>
+</div>
             
 <!-- Card ke theek niche Adsterra Banner Ad (728x90) -->
 <div class="my-3 text-center overflow-x-auto bg-slate-900/50 p-2 rounded-xl border border-slate-800">
